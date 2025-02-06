@@ -4797,19 +4797,32 @@ module GFS_diagnostics
        ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%fhist
       enddo
 
-      if (Model%ebb_dcycle == 2 ) then
+      if (Model%ebb_dcycle == 2) then
 
-      idx = idx + 1
-      ExtDiag(idx)%axes = 2
-      ExtDiag(idx)%name = 'fire_end_hr'
-      ExtDiag(idx)%desc = 'Hours since fire was last detected'
-      ExtDiag(idx)%unit = 'hrs'
-      ExtDiag(idx)%mod_name = 'gfs_sfc'
-      allocate (ExtDiag(idx)%data(nblks))
-      do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,3)
-      enddo
+        if (Model%hwp_alpha == 0.0) then ! LRW: use old ebb_dc2 if hwp_alpha is 0
+          idx = idx + 1
+          ExtDiag(idx)%axes = 2
+          ExtDiag(idx)%name = 'fire_end_hr'
+          ExtDiag(idx)%desc = 'Hours since fire was last detected'
+          ExtDiag(idx)%unit = 'hrs'
+          ExtDiag(idx)%mod_name = 'gfs_sfc'
+          allocate (ExtDiag(idx)%data(nblks))
+          do nb = 1,nblks
+           ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,3)
+          enddo
 
+        else
+          idx = idx + 1
+          ExtDiag(idx)%axes = 2
+          ExtDiag(idx)%name = 'fire_end_hr'
+          ExtDiag(idx)%desc = 'Hours since fire was last detected'
+          ExtDiag(idx)%unit = 'hrs'
+          ExtDiag(idx)%mod_name = 'gfs_sfc'
+          allocate (ExtDiag(idx)%data(nblks))
+          do nb = 1,nblks
+           ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,1,3)
+          enddo
+        endif
       endif
 
       endif  extended_smoke_dust_diagnostics
@@ -4848,41 +4861,176 @@ module GFS_diagnostics
        ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%frp_output
       enddo
 
-      smoke_forecast_mode: if (Model%ebb_dcycle == 2 ) then
+      smoke_forecast_mode: if (Model%ebb_dcycle == 2) then
 
-      idx = idx + 1
-      ExtDiag(idx)%axes = 2
-      ExtDiag(idx)%name = 'ebb_rate'
-      ExtDiag(idx)%desc = 'Total EBB Emissions'
-      ExtDiag(idx)%unit = 'ug m-2 s-1'
-      ExtDiag(idx)%mod_name = 'gfs_sfc'
-      allocate (ExtDiag(idx)%data(nblks))
-      do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,1)
-      enddo
+      if (Model%hwp_alpha == 0.0) then ! LRW: use old ebb_dc2 if hwp_alpha is 0
 
-      idx = idx + 1
-      ExtDiag(idx)%axes = 2
-      ExtDiag(idx)%name = 'frp_davg'
-      ExtDiag(idx)%desc = 'Daily mean Fire Radiative Power'
-      ExtDiag(idx)%unit = 'mw'
-      ExtDiag(idx)%mod_name = 'gfs_sfc'
-      allocate (ExtDiag(idx)%data(nblks))
-      do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,2)
-      enddo
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'ebb_rate'
+        ExtDiag(idx)%desc = 'Total EBB Emissions'
+        ExtDiag(idx)%unit = 'ug m-2 s-1'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,1)
+        enddo
 
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'frp_davg'
+        ExtDiag(idx)%desc = 'Daily mean Fire Radiative Power'
+        ExtDiag(idx)%unit = 'mw'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,2)
+        enddo
 
-      idx = idx + 1
-      ExtDiag(idx)%axes = 2
-      ExtDiag(idx)%name = 'hwp_davg'
-      ExtDiag(idx)%desc = 'Daily mean Hourly Wildfire Potential'
-      ExtDiag(idx)%unit = ' '
-      ExtDiag(idx)%mod_name = 'gfs_sfc'
-      allocate (ExtDiag(idx)%data(nblks))
-      do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,4)
-      enddo
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'hwp_davg'
+        ExtDiag(idx)%desc = 'Daily mean Hourly Wildfire Potential'
+        ExtDiag(idx)%unit = ' '
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,4)
+        enddo
+
+      else ! hwp_alpha > 0
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'ebb_rate'
+        ExtDiag(idx)%desc = 'Total EBB Emissions'
+        ExtDiag(idx)%unit = 'ug m-2 s-1'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,1,1)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'ebb_rate2'
+        ExtDiag(idx)%desc = 'Total EBB Emissions'
+        ExtDiag(idx)%unit = 'ug m-2 s-1'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,2,1)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'ebb_rate3'
+        ExtDiag(idx)%desc = 'Total EBB Emissions'
+        ExtDiag(idx)%unit = 'ug m-2 s-1'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,3,1)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'ebb_rate4'
+        ExtDiag(idx)%desc = 'Total EBB Emissions'
+        ExtDiag(idx)%unit = 'ug m-2 s-1'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,4,1)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'frp_davg'
+        ExtDiag(idx)%desc = 'Daily mean Fire Radiative Power'
+        ExtDiag(idx)%unit = 'mw'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,1,2)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'frp_davg2'
+        ExtDiag(idx)%desc = 'Daily mean Fire Radiative Power'
+        ExtDiag(idx)%unit = 'mw'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,2,2)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'frp_davg3'
+        ExtDiag(idx)%desc = 'Daily mean Fire Radiative Power'
+        ExtDiag(idx)%unit = 'mw'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,3,2)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'frp_davg4'
+        ExtDiag(idx)%desc = 'Daily mean Fire Radiative Power'
+        ExtDiag(idx)%unit = 'mw'
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,4,2)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'hwp_davg'
+        ExtDiag(idx)%desc = 'Daily mean Hourly Wildfire Potential'
+        ExtDiag(idx)%unit = ' '
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,1,4)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'hwp_davg2'
+        ExtDiag(idx)%desc = 'Daily mean Hourly Wildfire Potential'
+        ExtDiag(idx)%unit = ' '
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,2,4)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'hwp_davg3'
+        ExtDiag(idx)%desc = 'Daily mean Hourly Wildfire Potential'
+        ExtDiag(idx)%unit = ' '
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,3,4)
+        enddo
+
+        idx = idx + 1
+        ExtDiag(idx)%axes = 2
+        ExtDiag(idx)%name = 'hwp_davg4'
+        ExtDiag(idx)%desc = 'Daily mean Hourly Wildfire Potential'
+        ExtDiag(idx)%unit = ' '
+        ExtDiag(idx)%mod_name = 'gfs_sfc'
+        allocate (ExtDiag(idx)%data(nblks))
+        do nb = 1,nblks
+         ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,4,4)
+        enddo
+      endif
 
       endif smoke_forecast_mode
 

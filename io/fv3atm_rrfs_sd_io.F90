@@ -64,16 +64,21 @@ module fv3atm_rrfs_sd_io
     integer, private :: nvar_emi = 1
     integer, private :: nvar_fire = 2
     integer, private :: nvar_fire2d = 5
+    !JR added method 6, same parameters as used in ebb2
+    integer, private :: nvar_firem6 = 5
+    !JR ends
 
     character(len=32), pointer, dimension(:), private :: dust12m_name => null()
     character(len=32), pointer, dimension(:), private :: emi_name => null()
     character(len=32), pointer, dimension(:), private :: fire_name => null()
     character(len=32), pointer, dimension(:), private :: fire_name2d => null()
+    character(len=32), pointer, dimension(:), private :: fire_namem6 => null()    !JR added pointer for method 6
 
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: dust12m_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: emi_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: fire_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:  ), private :: fire_var2d => null()
+    real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: fire_varm6 => null()  !JR added pointer for method 6
 
   contains
 
@@ -534,8 +539,10 @@ contains
     real(kind=kind_phys), pointer, dimension(:,:,:) :: var3_p2 => NULL()
     integer :: num, nx, ny
     integer :: ebb_dcycle
+    real(kind=kind_phys) :: hwp_alpha
 
     ebb_dcycle=Model%ebb_dcycle
+    hwp_alpha=Model%hwp_alpha
 
     if(associated(data%fire_name)) then
       deallocate(data%fire_name)
@@ -547,6 +554,13 @@ contains
       nullify(data%fire_name2d)
     endif
 
+    !JR Added fcst method 6 starts
+    if(associated(data%fire_namem6)) then
+      deallocate(data%fire_namem6)
+      nullify(data%fire_namem6)     
+    endif  
+    !JR Ends
+
     if(associated(data%fire_var)) then
       deallocate(data%fire_var)
       nullify(data%fire_var)
@@ -557,12 +571,22 @@ contains
       nullify(data%fire_var2d)
     endif
 
+    !JR Added fcst method 6 starts
+    if(associated(data%fire_varm6)) then
+      deallocate(data%fire_varm6)
+      nullify(data%fire_varm6)
+    endif
+    !JR Ends    
+
     !--- allocate the various containers needed for rrfssd fire data
     call get_nx_ny_from_atm(Atm_block, nx, ny)
     allocate(data%fire_name(data%nvar_fire))
     allocate(data%fire_name2d(data%nvar_fire2d))
     allocate(data%fire_var(nx,ny,24,data%nvar_fire))
     allocate(data%fire_var2d(nx,ny,data%nvar_fire2d))
+    !JR Added fcst method 6 starts
+    allocate(data%fire_namem6(data%nvar_firem6))
+    allocate(data%fire_varm6(nx,ny,4,data%nvar_firem6))
 
     data%fire_name(1)  = 'ebb_smoke_hr'  ! 2d x 24 hours
     data%fire_name(2)  = 'frp_avg_hr'    ! 2d x 24 hours
@@ -573,6 +597,14 @@ contains
     data%fire_name2d(3)  = 'fire_end_hr'
     data%fire_name2d(4)  = 'hwp_davg'
     data%fire_name2d(5)  = 'totprcp_24hrs'
+
+    !JR added potential names method 6
+    data%fire_namem6(1)  = 'ebb_rate'  ! 2d * 4 hours
+    data%fire_namem6(2)  = 'frp_davg'
+    data%fire_namem6(3)  = 'fire_end_hr'
+    data%fire_namem6(4)  = 'hwp_davg'
+    data%fire_namem6(5)  = 'totprcp_24hrs'
+    !JR ends
 
     !--- register axis
     call register_axis(restart, 'lon', 'X')
@@ -585,14 +617,27 @@ contains
       call register_restart_field(restart, data%fire_name(num), var3_p2, &
            dimensions=(/'t  ', 'lat', 'lon'/), is_optional=.true.)
      enddo
-    elseif (ebb_dcycle==2) then ! -- forecast mode
-     !--- register the 2D fields
-     call register_axis(restart, 't', 1)
-     do num = 1,data%nvar_fire2d
-      var_p2 => data%fire_var2d(:,:,num)
-      call register_restart_field(restart, data%fire_name2d(num), var_p2, &
-           dimensions=(/'lat', 'lon'/), is_optional=.true.)
-     enddo
+    !JR starts added ebb_dc3
+    elseif (ebb_dcycle==2) then ! -- forecast mode (hwp_alpha > 0 uses method 6 (input computed within 6 hours periods)
+      if (hwp_alpha == 0.0) then
+        !--- register the 2D fields
+        call register_axis(restart, 't', 1)
+        do num = 1,data%nvar_fire2d
+          var_p2 => data%fire_var2d(:,:,num)
+          call register_restart_field(restart, data%fire_name2d(num), var_p2, &
+               dimensions=(/'lat', 'lon'/), is_optional=.true.)
+        enddo
+      else 
+        !--- register the 3D fields
+        call register_axis(restart, 't', 4)
+        do num = 1,data%nvar_firem6
+          var3_p2 => data%fire_varm6(:,:,:,num)
+          call register_restart_field(restart, data%fire_namem6(num), var3_p2, &
+               dimensions=(/'t  ', 'lat', 'lon'/), is_optional=.true.)
+        enddo
+      endif
+    !JR ends    
+     
     else
      ! -- user define their own fire emission
     endif
@@ -611,8 +656,10 @@ contains
 
     integer :: nb, ix, k, i, j
     integer :: ebb_dcycle
+    real(kind=kind_phys) :: hwp_alpha
 
     ebb_dcycle=Model%ebb_dcycle
+    hwp_alpha=Model%hwp_alpha
 
     !$omp parallel do default(shared) private(i, j, nb, ix, k)
     do nb = 1, Atm_block%nblks
@@ -625,13 +672,34 @@ contains
           Sfcprop(nb)%smoke_RRFS(ix,k,1)  = data%fire_var(i,j,k,1)
           Sfcprop(nb)%smoke_RRFS(ix,k,2)  = data%fire_var(i,j,k,2)
          enddo
+        !elseif (ebb_dcycle==2) then ! -- forecast mode
+        !!--- 2D variables
+        !  Sfcprop(nb)%smoke2d_RRFS(ix,1)  = data%fire_var2d(i,j,1)
+        !  Sfcprop(nb)%smoke2d_RRFS(ix,2)  = data%fire_var2d(i,j,2)
+        !  Sfcprop(nb)%smoke2d_RRFS(ix,3)  = data%fire_var2d(i,j,3)
+        !  Sfcprop(nb)%smoke2d_RRFS(ix,4)  = data%fire_var2d(i,j,4)
+        !  Sfcprop(nb)%smoke2d_RRFS(ix,5)  = data%fire_var2d(i,j,5)
+
+        !JR starts method 6
         elseif (ebb_dcycle==2) then ! -- forecast mode
-        !--- 2D variables
-          Sfcprop(nb)%smoke2d_RRFS(ix,1)  = data%fire_var2d(i,j,1)
-          Sfcprop(nb)%smoke2d_RRFS(ix,2)  = data%fire_var2d(i,j,2)
-          Sfcprop(nb)%smoke2d_RRFS(ix,3)  = data%fire_var2d(i,j,3)
-          Sfcprop(nb)%smoke2d_RRFS(ix,4)  = data%fire_var2d(i,j,4)
-          Sfcprop(nb)%smoke2d_RRFS(ix,5)  = data%fire_var2d(i,j,5)
+          if (hwp_alpha == 0.0) then
+            !--- 2D variables
+            Sfcprop(nb)%smoke2d_RRFS(ix,1)  = data%fire_var2d(i,j,1)
+            Sfcprop(nb)%smoke2d_RRFS(ix,2)  = data%fire_var2d(i,j,2)
+            Sfcprop(nb)%smoke2d_RRFS(ix,3)  = data%fire_var2d(i,j,3)
+            Sfcprop(nb)%smoke2d_RRFS(ix,4)  = data%fire_var2d(i,j,4)
+            Sfcprop(nb)%smoke2d_RRFS(ix,5)  = data%fire_var2d(i,j,5)
+          else
+            !--- 3D variables
+            do k = 1, 4
+              Sfcprop(nb)%smokem6_RRFS(ix,k,1)  = data%fire_varm6(i,j,k,1)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,2)  = data%fire_varm6(i,j,k,2)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,3)  = data%fire_varm6(i,j,k,3)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,4)  = data%fire_varm6(i,j,k,4)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,5)  = data%fire_varm6(i,j,k,5)
+            enddo
+          endif 
+          !JR ends
         else
          ! -- user define their own fire emission
         endif
@@ -654,9 +722,11 @@ contains
     IF_ASSOC_DEALLOC_NULL(dust12m_name)
     IF_ASSOC_DEALLOC_NULL(emi_name)
     IF_ASSOC_DEALLOC_NULL(fire_name)
+    IF_ASSOC_DEALLOC_NULL(fire_namem6)
     IF_ASSOC_DEALLOC_NULL(dust12m_var)
     IF_ASSOC_DEALLOC_NULL(emi_var)
     IF_ASSOC_DEALLOC_NULL(fire_var)
+    IF_ASSOC_DEALLOC_NULL(fire_varm6)
 
     ! Undefine this to avoid cluttering the cpp scope:
 #undef IF_ASSOC_DEALLOC_NULL

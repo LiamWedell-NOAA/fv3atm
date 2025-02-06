@@ -949,6 +949,14 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+[smokem6_RRFS]
+  standard_name = emission_smoke_6hrly
+  long_name = emission fire RRFS 6hr
+  units = various
+  dimensions = (horizontal_loop_extent,4,5)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
 [z0base]
   standard_name = baseline_surface_roughness_length
   long_name = baseline surface roughness length for momentum in meter
@@ -4881,9 +4889,9 @@
   units = flag
   dimensions = ()
   type = logical
-[sc_factor]
-  standard_name = scale_factor_for_wildfire_emissions
-  long_name = scale factor for wildfire emissions
+[hwp_alpha]
+  standard_name = scale_factor_for_HWP_6hourly
+  long_name = scale factor for HWP 6 hourly
   units = 1
   dimensions = ()
   type = real
