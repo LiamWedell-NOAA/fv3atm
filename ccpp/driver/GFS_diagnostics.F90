@@ -4797,6 +4797,17 @@ module GFS_diagnostics
        ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%fhist
       enddo
 
+      idx = idx + 1
+      ExtDiag(idx)%axes = 2
+      ExtDiag(idx)%name = 'emiss_factor'
+      ExtDiag(idx)%desc = ''
+      ExtDiag(idx)%unit = ''
+      ExtDiag(idx)%mod_name = 'gfs_sfc'
+      allocate (ExtDiag(idx)%data(nblks))
+      do nb = 1,nblks
+       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%eco_in(:,1)
+      enddo
+
       if (Model%ebb_dcycle == 2 ) then
 
       idx = idx + 1

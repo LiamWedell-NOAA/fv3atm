@@ -64,16 +64,19 @@ module fv3atm_rrfs_sd_io
     integer, private :: nvar_emi = 1
     integer, private :: nvar_fire = 2
     integer, private :: nvar_fire2d = 5
+    integer, private :: nvar_eco = 1
 
     character(len=32), pointer, dimension(:), private :: dust12m_name => null()
     character(len=32), pointer, dimension(:), private :: emi_name => null()
     character(len=32), pointer, dimension(:), private :: fire_name => null()
     character(len=32), pointer, dimension(:), private :: fire_name2d => null()
+    character(len=32), pointer, dimension(:), private :: eco_name => null()
 
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: dust12m_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: emi_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: fire_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:  ), private :: fire_var2d => null()
+    real(kind=kind_phys), pointer, dimension(:,:,:  ), private :: eco_var => null()
 
   contains
 
@@ -85,6 +88,9 @@ module fv3atm_rrfs_sd_io
 
     procedure, public :: register_fire => rrfs_sd_emissions_register_fire
     procedure, public :: copy_fire => rrfs_sd_emissions_copy_fire
+
+    procedure, public :: register_eco => rrfs_sd_emissions_register_eco
+    procedure, public :: copy_eco => rrfs_sd_emissions_copy_eco
 
     final :: rrfs_sd_emissions_final
   end type rrfs_sd_emissions_type
@@ -639,6 +645,79 @@ contains
     enddo
   end subroutine rrfs_sd_emissions_copy_fire
 
+  ! --------------------------------------------------------------------
+
+  !>@ Allocates temporary arrays and registers variables for reading the fire data file.
+  subroutine rrfs_sd_emissions_register_eco(data, Model, restart, Atm_block)
+    implicit none
+    class(rrfs_sd_emissions_type) :: data
+    type(GFS_control_type),   intent(in) :: Model
+    type(FmsNetcdfDomainFile_t) :: restart
+    type(block_control_type), intent(in) :: Atm_block
+
+    real(kind=kind_phys), pointer, dimension(:,:) :: var_p2 => NULL()
+    real(kind=kind_phys), pointer, dimension(:,:,:) :: var3_p2 => NULL()
+    integer :: num, nx, ny
+
+    if(associated(data%eco_name)) then
+      deallocate(data%eco_name)
+      nullify(data%eco_name)
+    endif
+
+    if(associated(data%eco_var)) then
+      deallocate(data%eco_var)
+      nullify(data%eco_var)
+    endif
+
+    !--- allocate the various containers needed for rrfssd fire data
+    call get_nx_ny_from_atm(Atm_block, nx, ny)
+    allocate(data%eco_name(data%nvar_eco))
+    allocate(data%eco_var(nx,ny,data%nvar_eco))
+
+    ! For the operational system
+    data%eco_name(1)  = 'emiss_factor'  ! 2d
+
+    !--- register axis
+    call register_axis(restart, 'lon', 'X')
+    call register_axis(restart, 'lat', 'Y')
+
+    !--- register the 2D fields
+    call register_axis(restart, 't', 1)
+    do num = 1,data%nvar_eco
+     var_p2 => data%eco_var(:,:,num)
+     call register_restart_field(restart, data%eco_name(num), var_p2, &
+          dimensions=(/'lat', 'lon'/), is_optional=.true.)
+    enddo
+
+  end subroutine rrfs_sd_emissions_register_eco
+
+  ! --------------------------------------------------------------------
+
+  !>@ Called after register_eco() to copy data from internal arrays to the model grid and deallocate arrays
+  subroutine rrfs_sd_emissions_copy_eco(data, Model, Sfcprop, Atm_block)
+    implicit none
+    class(rrfs_sd_emissions_type) :: data
+    type(GFS_control_type),   intent(in) :: Model
+    type(GFS_sfcprop_type),    intent(inout) :: Sfcprop(:)
+    type(block_control_type), intent(in) :: Atm_block
+
+    integer :: nb, ix, k, i, j
+
+    !$omp parallel do default(shared) private(i, j, nb, ix, k)
+    do nb = 1, Atm_block%nblks
+      do ix = 1, Atm_block%blksz(nb)
+        i = Atm_block%index(nb)%ii(ix) - Atm_block%isc + 1
+        j = Atm_block%index(nb)%jj(ix) - Atm_block%jsc + 1
+        !--- 2D variables
+        Sfcprop(nb)%eco_in(ix,1)  = data%eco_var(i,j,1)
+        Sfcprop(nb)%eco_in(ix,2)  = data%eco_var(i,j,2)
+        Sfcprop(nb)%eco_in(ix,3)  = data%eco_var(i,j,3)
+        Sfcprop(nb)%eco_in(ix,4)  = data%eco_var(i,j,4)
+        Sfcprop(nb)%eco_in(ix,5)  = data%eco_var(i,j,5)
+      enddo
+    enddo
+  end subroutine rrfs_sd_emissions_copy_eco
+
   !>@ Destructor for rrfs_sd_emissions_type
   subroutine rrfs_sd_emissions_final(data)
     implicit none
@@ -654,9 +733,11 @@ contains
     IF_ASSOC_DEALLOC_NULL(dust12m_name)
     IF_ASSOC_DEALLOC_NULL(emi_name)
     IF_ASSOC_DEALLOC_NULL(fire_name)
+    IF_ASSOC_DEALLOC_NULL(eco_name)
     IF_ASSOC_DEALLOC_NULL(dust12m_var)
     IF_ASSOC_DEALLOC_NULL(emi_var)
     IF_ASSOC_DEALLOC_NULL(fire_var)
+    IF_ASSOC_DEALLOC_NULL(eco_var)
 
     ! Undefine this to avoid cluttering the cpp scope:
 #undef IF_ASSOC_DEALLOC_NULL

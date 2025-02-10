@@ -949,6 +949,14 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+[eco_in]
+  standard_name = emission_factor_veg
+  long_name = emission factor veg RRFS
+  units = various
+  dimensions = (horizontal_loop_extent,1)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
 [z0base]
   standard_name = baseline_surface_roughness_length
   long_name = baseline surface roughness length for momentum in meter

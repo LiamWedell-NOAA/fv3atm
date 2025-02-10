@@ -256,6 +256,7 @@ module GFS_typedefs
     real (kind=kind_phys), pointer :: emi_in (:,:) => null()  !< anthropogenic background input
     real (kind=kind_phys), pointer :: smoke_RRFS(:,:,:) => null()  !< RRFS fire input hourly
     real (kind=kind_phys), pointer :: smoke2d_RRFS(:,:) => null()  !< RRFS fire input daily
+    real (kind=kind_phys), pointer :: eco_in(:,:) => null()  !< emission factor
     real (kind=kind_phys), pointer :: z0base (:)   => null()  !< background or baseline surface roughness length in m
     real (kind=kind_phys), pointer :: semisbase(:) => null()  !< background surface emissivity
     real (kind=kind_phys), pointer :: sfalb_lnd (:) => null() !< surface albedo over land for LSM
@@ -2366,6 +2367,7 @@ module GFS_typedefs
     allocate (Sfcprop%dust12m_in  (IM,12,5))
     allocate (Sfcprop%smoke_RRFS(IM,24,2))
     allocate (Sfcprop%smoke2d_RRFS(IM,5))
+    allocate (Sfcprop%eco_in   (IM,1))
     allocate (Sfcprop%emi_in   (IM,1))
     allocate(Sfcprop%albdirvis_lnd (IM))
     allocate(Sfcprop%albdirnir_lnd (IM))
@@ -2424,6 +2426,7 @@ module GFS_typedefs
     Sfcprop%emi_in    = clear_val
     Sfcprop%smoke_RRFS= clear_val
     Sfcprop%smoke2d_RRFS= clear_val
+    Sfcprop%eco_in    = clear_val
     Sfcprop%albdirvis_lnd = clear_val
     Sfcprop%albdirnir_lnd = clear_val
     Sfcprop%albdifvis_lnd = clear_val
