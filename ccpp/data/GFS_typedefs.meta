@@ -5521,12 +5521,6 @@
   units = flag
   dimensions = ()
   type = integer
-[gf_coldstart]
-  standard_name = flag_for_cold_start_gf
-  long_name = flag to cold start G-F
-  units = flag
-  dimensions = ()
-  type = logical
 [hwrf_samfdeep]
   standard_name = flag_for_hurricane_specific_code_in_scale_aware_mass_flux_deep_convection
   long_name = flag for hwrf samfdeepcnv scheme
@@ -6929,13 +6923,6 @@
 [do_smoke_transport]
   standard_name = do_smoke_conv_transport
   long_name = flag for rrfs smoke convective transport
-  units = flag
-  dimensions = ()
-  type = logical
-  active = (do_smoke_coupling)
-[do_wetrm_thmp]
-  standard_name = do_aerosol_wet_removal_thompson
-  long_name = flag for wet removal of aerosols in Thompson MP
   units = flag
   dimensions = ()
   type = logical
