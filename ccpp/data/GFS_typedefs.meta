@@ -6935,6 +6935,13 @@
   dimensions = ()
   type = logical
   active = (do_smoke_coupling)
+[do_wetrm_thmp]
+  standard_name = do_aerosol_wet_removal_thompson
+  long_name = flag for wet removal of aerosols in Thompson MP
+  units = flag
+  dimensions = ()
+  type = logical
+  active = (do_smoke_coupling)
 [ncnvcld3d]
   standard_name = number_of_convective_cloud_variables_in_xyz_dimensioned_restart_array
   long_name = number of convective 3d clouds fields

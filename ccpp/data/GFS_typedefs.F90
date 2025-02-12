@@ -1560,6 +1560,7 @@ module GFS_typedefs
     logical              :: aero_dir_fdb    ! smoke/dust direct
     logical              :: rrfs_smoke_debug
     logical              :: do_smoke_transport
+    logical              :: do_wetrm_thmp
     logical              :: mix_chem
     logical              :: enh_mix
     real(kind=kind_phys) :: smoke_dir_fdb_coef(7) !< smoke & dust direct feedbck coefficents
@@ -4259,6 +4260,7 @@ module GFS_typedefs
     logical :: aero_dir_fdb = .false.     ! RRFS-sd smoke/dust radiation feedback
     logical :: rrfs_smoke_debug = .false. ! RRFS-sd plumerise debug
     logical :: do_smoke_transport = .true.! RRFS-sd convective transport of smoke/dust
+    logical :: do_wetrm_thmp = .false.
     logical :: mix_chem = .false.         ! tracer mixing option by MYNN PBL
     logical :: enh_mix  = .false.         ! enhance vertmix option by MYNN PBL
     real(kind=kind_phys) :: smoke_dir_fdb_coef(7) =(/ 0.33, 0.67, 0.02, 0.13, 0.85, 0.05, 0.95 /) !< smoke & dust direct feedbck coefficents
@@ -4426,7 +4428,7 @@ module GFS_typedefs
                                rrfs_smoke_debug, do_plumerise, plumerisefire_frq,           &
                                addsmoke_flag, enh_mix, mix_chem, smoke_dir_fdb_coef,        &
                                do_smoke_transport,smoke_conv_wet_coef,n_dbg_lines,          &
-                               add_fire_moist_flux, hwp_alpha, plume_alpha,                 &
+                               do_wetrm_thmp, add_fire_moist_flux, hwp_alpha, plume_alpha,  &
                           !--- C3/GF closures
                                ichoice,ichoicem,ichoice_s,                                  &
                           !--- (DFI) time ranges with radar-prescribed microphysics tendencies
@@ -4675,6 +4677,7 @@ module GFS_typedefs
     Model%aero_dir_fdb      = aero_dir_fdb
     Model%rrfs_smoke_debug  = rrfs_smoke_debug
     Model%do_smoke_transport= do_smoke_transport
+    Model%do_wetrm_thmp     = do_wetrm_thmp
     Model%mix_chem          = mix_chem
     Model%enh_mix           = enh_mix
     Model%smoke_dir_fdb_coef  = smoke_dir_fdb_coef
@@ -6824,6 +6827,7 @@ module GFS_typedefs
         print *, 'aero_dir_fdb     : ',Model%aero_dir_fdb
         print *, 'rrfs_smoke_debug : ',Model%rrfs_smoke_debug
         print *, 'do_smoke_transport : ',Model%do_smoke_transport
+        print *, 'do_wetrm_thmp    : ',Model%do_wetrm_thmp
         print *, 'mix_chem         : ',Model%mix_chem
         print *, 'enh_mix          : ',Model%enh_mix
         print *, 'smoke_dir_fdb_coef : ',Model%smoke_dir_fdb_coef
