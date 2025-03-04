@@ -716,10 +716,9 @@ contains
   ! --------------------------------------------------------------------
 
   !>@ Allocates temporary arrays and registers variables for reading the fire data file.
-  subroutine rrfs_sd_emissions_register_eco(data, Model, restart, Atm_block)
+  subroutine rrfs_sd_emissions_register_eco(data, restart, Atm_block)
     implicit none
     class(rrfs_sd_emissions_type) :: data
-    type(GFS_control_type),   intent(in) :: Model
     type(FmsNetcdfDomainFile_t) :: restart
     type(block_control_type), intent(in) :: Atm_block
 
@@ -762,10 +761,9 @@ contains
   ! --------------------------------------------------------------------
 
   !>@ Called after register_eco() to copy data from internal arrays to the model grid and deallocate arrays
-  subroutine rrfs_sd_emissions_copy_eco(data, Model, Sfcprop, Atm_block)
+  subroutine rrfs_sd_emissions_copy_eco(data, Sfcprop, Atm_block)
     implicit none
     class(rrfs_sd_emissions_type) :: data
-    type(GFS_control_type),   intent(in) :: Model
     type(GFS_sfcprop_type),    intent(inout) :: Sfcprop(:)
     type(block_control_type), intent(in) :: Atm_block
 
