@@ -925,6 +925,14 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+[eco_in]
+  standard_name = ecosystem_map
+  long_name = ecosytem map RRFS
+  units = various
+  dimensions = (horizontal_loop_extent,1)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
 [emi_in]
   standard_name = anthropogenic_background_input
   long_name = anthropogenic background input
@@ -949,11 +957,11 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
-[eco_in]
-  standard_name = emission_factor_veg
-  long_name = emission factor veg RRFS
+[smokem6_RRFS]
+  standard_name = emission_smoke_6hrly
+  long_name = emission fire RRFS 6hr
   units = various
-  dimensions = (horizontal_loop_extent,1)
+  dimensions = (horizontal_loop_extent,4,5)
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
@@ -4889,9 +4897,9 @@
   units = flag
   dimensions = ()
   type = logical
-[sc_factor]
-  standard_name = scale_factor_for_wildfire_emissions
-  long_name = scale factor for wildfire emissions
+[hwp_alpha]
+  standard_name = scale_factor_for_HWP_6hourly
+  long_name = scale factor for HWP 6 hourly
   units = 1
   dimensions = ()
   type = real
@@ -5529,12 +5537,6 @@
   units = flag
   dimensions = ()
   type = integer
-[gf_coldstart]
-  standard_name = flag_for_cold_start_gf
-  long_name = flag to cold start G-F
-  units = flag
-  dimensions = ()
-  type = logical
 [hwrf_samfdeep]
   standard_name = flag_for_hurricane_specific_code_in_scale_aware_mass_flux_deep_convection
   long_name = flag for hwrf samfdeepcnv scheme

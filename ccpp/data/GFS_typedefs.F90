@@ -253,10 +253,11 @@ module GFS_typedefs
     real (kind=kind_phys), pointer :: weasdi (:)   => null()  !< weasd over ice
     real (kind=kind_phys), pointer :: hprime (:,:) => null()  !< orographic metrics
     real (kind=kind_phys), pointer :: dust12m_in  (:,:,:) => null()  !< fengsha dust input
+    real (kind=kind_phys), pointer :: eco_in(:,:) => null()  !< ecosystem map
     real (kind=kind_phys), pointer :: emi_in (:,:) => null()  !< anthropogenic background input
     real (kind=kind_phys), pointer :: smoke_RRFS(:,:,:) => null()  !< RRFS fire input hourly
     real (kind=kind_phys), pointer :: smoke2d_RRFS(:,:) => null()  !< RRFS fire input daily
-    real (kind=kind_phys), pointer :: eco_in(:,:) => null()  !< emission factor
+    real (kind=kind_phys), pointer :: smokem6_RRFS(:,:,:) => null()  !< RRFS fire 4 times input daily  !!JR added method 6
     real (kind=kind_phys), pointer :: z0base (:)   => null()  !< background or baseline surface roughness length in m
     real (kind=kind_phys), pointer :: semisbase(:) => null()  !< background surface emissivity
     real (kind=kind_phys), pointer :: sfalb_lnd (:) => null() !< surface albedo over land for LSM
@@ -1200,7 +1201,6 @@ module GFS_typedefs
     integer              :: ichoice         = 0 !< flag for closure of C3/GF deep convection
     integer              :: ichoicem        = 13!< flag for closure of C3/GF mid convection
     integer              :: ichoice_s       = 3 !< flag for closure of C3/GF shallow convection
-    logical              :: gf_coldstart     !< flag for cold start GF 
     integer              :: conv_cf_opt      !< option for convection scheme cloud fraction computation
                                              !< 0: Chaboureau-Bechtold
                                              !< 1: Xu-Randall
@@ -1556,7 +1556,7 @@ module GFS_typedefs
     integer              :: n_dbg_lines
     integer              :: hwp_method
     logical              :: add_fire_moist_flux ! Flag to add moisture fluxes based on PM2.5 emissions
-    real(kind=kind_phys) :: sc_factor
+    real(kind=kind_phys) :: hwp_alpha
     logical              :: aero_ind_fdb    ! WFA/IFA indirect
     logical              :: aero_dir_fdb    ! smoke/dust direct
     logical              :: rrfs_smoke_debug
@@ -2367,6 +2367,7 @@ module GFS_typedefs
     allocate (Sfcprop%dust12m_in  (IM,12,5))
     allocate (Sfcprop%smoke_RRFS(IM,24,2))
     allocate (Sfcprop%smoke2d_RRFS(IM,5))
+    allocate (Sfcprop%smokem6_RRFS(IM,4,5)) !JR added method 6
     allocate (Sfcprop%eco_in   (IM,1))
     allocate (Sfcprop%emi_in   (IM,1))
     allocate(Sfcprop%albdirvis_lnd (IM))
@@ -2423,10 +2424,11 @@ module GFS_typedefs
     Sfcprop%weasdi    = clear_val
     Sfcprop%hprime    = clear_val
     Sfcprop%dust12m_in= clear_val
+    Sfcprop%eco_in    = clear_val
     Sfcprop%emi_in    = clear_val
     Sfcprop%smoke_RRFS= clear_val
     Sfcprop%smoke2d_RRFS= clear_val
-    Sfcprop%eco_in    = clear_val
+    Sfcprop%smokem6_RRFS= clear_val  !JR added method 6
     Sfcprop%albdirvis_lnd = clear_val
     Sfcprop%albdirnir_lnd = clear_val
     Sfcprop%albdifvis_lnd = clear_val
@@ -4233,7 +4235,6 @@ module GFS_typedefs
     integer              :: ichoice         = 0 !< flag for closure of C3/GF deep convection
     integer              :: ichoicem        = 13!< flag for closure of C3/GF mid convection
     integer              :: ichoice_s       = 3 !< flag for closure of C3/GF shallow convection
-    logical              :: gf_coldstart  = .false.   !< flag for cold start GF 
 
 !-- chem nml variables for RRFS-SD
     real(kind=kind_phys) :: dust_drylimit_factor  = 1.0
@@ -4253,7 +4254,7 @@ module GFS_typedefs
     integer :: wetdep_ls_opt  = 1
     logical :: do_plumerise   = .false.
     logical :: add_fire_moist_flux = .false.
-    real(kind=kind_phys) :: sc_factor = 1.0
+    real(kind=kind_phys) :: hwp_alpha = 0.0
     integer :: addsmoke_flag  = 1
     integer :: plumerisefire_frq = 60
     integer :: n_dbg_lines = 3
@@ -4430,9 +4431,9 @@ module GFS_typedefs
                                rrfs_smoke_debug, do_plumerise, plumerisefire_frq,           &
                                addsmoke_flag, enh_mix, mix_chem, smoke_dir_fdb_coef,        &
                                do_smoke_transport,smoke_conv_wet_coef,n_dbg_lines,          &
-                               do_wetrm_thmp, add_fire_moist_flux, sc_factor, plume_alpha,  &
+                               do_wetrm_thmp, add_fire_moist_flux, hwp_alpha, plume_alpha,  &
                           !--- C3/GF closures
-                               ichoice,ichoicem,ichoice_s,gf_coldstart,                     &
+                               ichoice,ichoicem,ichoice_s,                                  &
                           !--- (DFI) time ranges with radar-prescribed microphysics tendencies
                           !          and (maybe) convection suppression
                                fh_dfi_radar, radar_tten_limits, do_cap_suppress,            &
@@ -4673,7 +4674,7 @@ module GFS_typedefs
     Model%plumerisefire_frq = plumerisefire_frq
     Model%addsmoke_flag     = addsmoke_flag
     Model%add_fire_moist_flux = add_fire_moist_flux
-    Model%sc_factor         = sc_factor
+    Model%hwp_alpha         = hwp_alpha
     Model%hwp_method        = hwp_method
     Model%aero_ind_fdb      = aero_ind_fdb
     Model%aero_dir_fdb      = aero_dir_fdb
@@ -4690,7 +4691,6 @@ module GFS_typedefs
     Model%ichoice_s = ichoice_s
     Model%ichoicem  = ichoicem
     Model%ichoice   = ichoice
-    Model%gf_coldstart  = gf_coldstart
 
 !--- integrated dynamics through earth's atmosphere
     Model%lsidea           = lsidea
@@ -6801,7 +6801,6 @@ module GFS_typedefs
         print*,'ichoice_s          : ', Model%ichoice_s
         print*,'ichoicem           : ', Model%ichoicem
         print*,'ichoice            : ', Model%ichoice
-        print*,'gf_coldstart       : ', Model%gf_coldstart
       endif
       if(model%rrfs_sd) then
         print *, ' '
@@ -6824,7 +6823,7 @@ module GFS_typedefs
         print *, 'do_plumerise     : ',Model%do_plumerise
         print *, 'plumerisefire_frq: ',Model%plumerisefire_frq
         print *, 'add_fire_moist_flux: ',Model%add_fire_moist_flux
-        print *, 'sc_factor        : ',Model%sc_factor
+        print *, 'hwp_alpha        : ',Model%hwp_alpha
         print *, 'addsmoke_flag    : ',Model%addsmoke_flag
         print *, 'hwp_method       : ',Model%hwp_method
         print *, 'aero_ind_fdb     : ',Model%aero_ind_fdb
