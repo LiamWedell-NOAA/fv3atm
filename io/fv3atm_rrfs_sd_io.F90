@@ -742,7 +742,7 @@ contains
     allocate(data%eco_var(nx,ny,data%nvar_eco))
 
     ! For the operational system
-    data%eco_name(1)  = 'emiss_factor'  ! 2d
+    data%eco_name(1)  = 'ecoregion_ID'  ! 2d
 
     !--- register axis
     call register_axis(restart, 'lon', 'X')
