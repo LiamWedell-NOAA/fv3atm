@@ -4799,7 +4799,7 @@ module GFS_diagnostics
 
       idx = idx + 1
       ExtDiag(idx)%axes = 2
-      ExtDiag(idx)%name = 'emiss_factor'
+      ExtDiag(idx)%name = 'ecoregion_ID'
       ExtDiag(idx)%desc = ''
       ExtDiag(idx)%unit = ''
       ExtDiag(idx)%mod_name = 'gfs_sfc'
