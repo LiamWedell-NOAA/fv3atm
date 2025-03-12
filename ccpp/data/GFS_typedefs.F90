@@ -648,6 +648,7 @@ module GFS_typedefs
     !--- Fire plume rise diagnostics
     real (kind=kind_phys), pointer :: min_fplume (:)  => null()  !< minimum plume rise level
     real (kind=kind_phys), pointer :: max_fplume (:)  => null()  !< maximum plume rise level
+    real (kind=kind_phys), pointer :: wmax_plume (:)  => null()  !< maximum plume rise vert vel
     real (kind=kind_phys), pointer :: uspdavg (:)     => null()  !< BL average wind speed
     real (kind=kind_phys), pointer :: hpbl_thetav (:) => null()  !< BL depth parcel method
     real (kind=kind_phys), pointer :: rho_dry (:,:)   => null()  !< dry air density 3D array
@@ -1501,6 +1502,7 @@ module GFS_typedefs
     integer              :: ndchm           !< number of diagnostic chemical tracers (not advected)
     integer              :: ndchs           !< tracer index for first diagnostic chemical tracer
     integer              :: ndche           !< tracer index for last diagnostic chemical tracer
+    integer              :: nkplume         !< number of vertical levels in plume grid (=200 in Freitas code)
     logical, pointer     :: ntdiag(:) => null() !< array to control diagnostics for chemical tracers
     real(kind=kind_phys), pointer :: fscav(:)  => null() !< array of aerosol scavenging coefficients
 
@@ -1541,6 +1543,8 @@ module GFS_typedefs
     real(kind=kind_phys) :: dust_gamma        !< gamma parameter for fengsha dust scheme
     real(kind=kind_phys) :: wetdep_ls_alpha   !< alpha parameter for wet deposition
     real(kind=kind_phys) :: plume_alpha       !< alpha parameter for plumerise scheme
+    real(kind=kind_phys) :: plume_beta        !< beta parameter for plumerise scheme
+    real(kind=kind_phys) :: plume_beta_qv     !< beta parameter for qv fluxe
     integer              :: ebb_dcycle        !< 1:retro; 2:forecast of fire emission
     integer              :: seas_opt
     integer              :: dust_opt
@@ -3515,6 +3519,7 @@ module GFS_typedefs
       allocate (Coupling%drydep_flux(IM,Model%ndvel))
       allocate (Coupling%min_fplume(IM))
       allocate (Coupling%max_fplume(IM))
+      allocate (Coupling%wmax_plume(IM))
       allocate (Coupling%uspdavg(IM))
       allocate (Coupling%rho_dry   (IM,Model%levs))
       allocate (Coupling%hpbl_thetav(IM))
@@ -3528,6 +3533,7 @@ module GFS_typedefs
       Coupling%drydep_flux = clear_val
       Coupling%min_fplume = clear_val
       Coupling%max_fplume = clear_val
+      Coupling%wmax_plume = clear_val
       Coupling%uspdavg = clear_val
       Coupling%rho_dry = clear_val
       Coupling%hpbl_thetav = clear_val
@@ -3542,6 +3548,7 @@ module GFS_typedefs
       allocate (Coupling%drydep_flux(0,0))
       allocate (Coupling%min_fplume(0))
       allocate (Coupling%max_fplume(0))
+      allocate (Coupling%wmax_plume(0))
       allocate (Coupling%uspdavg(0))
       allocate (Coupling%rho_dry   (0,0))
       allocate (Coupling%hpbl_thetav(0))
@@ -4012,7 +4019,7 @@ module GFS_typedefs
     logical              :: do_mynnedmf       = .false.               !< flag for MYNN-EDMF
     logical              :: do_mynnsfclay     = .false.               !< flag for MYNN Surface Layer Scheme
     ! DH* TODO - move to MYNN namelist section
-    integer              :: tke_budget        = 0
+    integer              :: tke_budget        = 1
     logical              :: bl_mynn_tkeadvect = .false.
     integer              :: bl_mynn_cloudpdf  = 2
     integer              :: bl_mynn_mixlength = 1
@@ -4021,7 +4028,7 @@ module GFS_typedefs
     integer              :: bl_mynn_edmf_tke  = 0
     integer              :: bl_mynn_cloudmix  = 1
     integer              :: bl_mynn_mixqt     = 0
-    integer              :: bl_mynn_output    = 0
+    integer              :: bl_mynn_output    = 1
     integer              :: icloud_bl         = 1
     real(kind=kind_phys) :: bl_mynn_closure   = 2.6                   !<   <= 2.5  only prognose tke
                                                                       !<   2.5 < and < 3.0, prognose tke and q'2
@@ -4239,24 +4246,26 @@ module GFS_typedefs
     real(kind=kind_phys) :: dust_gamma = 0.
     real(kind=kind_phys) :: wetdep_ls_alpha = 0.5
     real(kind=kind_phys) :: plume_alpha = 0.05
+    real(kind=kind_phys) :: plume_beta = 1.6
+    real(kind=kind_phys) :: plume_beta_qv = 1.0
     integer :: dust_moist_opt = 1         ! fecan :1  else shao
-    integer :: ebb_dcycle = 1             ! 1:retro; 2:forecast
+    integer :: ebb_dcycle = 2             ! 1:retro; 2:forecast
     integer :: seas_opt = 2
     integer :: dust_opt = 1
     integer :: drydep_opt  = 1
     integer :: coarsepm_settling  = 1
     integer :: plume_wind_eff = 1
-    logical :: extended_sd_diags = .false.
+    logical :: extended_sd_diags = .true.
     integer :: wetdep_ls_opt  = 1
-    logical :: do_plumerise   = .false.
+    logical :: do_plumerise   = .true.
     logical :: add_fire_moist_flux = .false.
     real(kind=kind_phys) :: sc_factor = 1.0
     integer :: addsmoke_flag  = 1
     integer :: plumerisefire_frq = 60
     integer :: n_dbg_lines = 3
-    integer :: hwp_method = 2         ! RRFS-sd read in ebb_smoke
+    integer :: hwp_method = 1         ! RRFS-sd read in ebb_smoke
     logical :: aero_ind_fdb = .false.     ! RRFS-sd wfa/ifa emission
-    logical :: aero_dir_fdb = .false.     ! RRFS-sd smoke/dust radiation feedback
+    logical :: aero_dir_fdb = .true.     ! RRFS-sd smoke/dust radiation feedback
     logical :: rrfs_smoke_debug = .false. ! RRFS-sd plumerise debug
     logical :: do_smoke_transport = .true.! RRFS-sd convective transport of smoke/dust
     logical :: do_wetrm_thmp = .false.
@@ -4428,6 +4437,7 @@ module GFS_typedefs
                                addsmoke_flag, enh_mix, mix_chem, smoke_dir_fdb_coef,        &
                                do_smoke_transport,smoke_conv_wet_coef,n_dbg_lines,          &
                                do_wetrm_thmp, add_fire_moist_flux, sc_factor, plume_alpha,  &
+                               plume_beta,plume_beta_qv,                                    &
                           !--- C3/GF closures
                                ichoice,ichoicem,ichoice_s,gf_coldstart,                     &
                           !--- (DFI) time ranges with radar-prescribed microphysics tendencies
@@ -4657,6 +4667,8 @@ module GFS_typedefs
     Model%dust_gamma        = dust_gamma
     Model%wetdep_ls_alpha   = wetdep_ls_alpha
     Model%plume_alpha       = plume_alpha
+    Model%plume_beta        = plume_beta
+    Model%plume_beta_qv     = plume_beta_qv
     Model%ebb_dcycle        = ebb_dcycle
     Model%seas_opt          = seas_opt
     Model%dust_opt          = dust_opt
@@ -6641,6 +6653,7 @@ module GFS_typedefs
     integer :: n
 
     !--- begin
+    Model%nkplume = 0
     Model%nchem = 0
     Model%ndvel = 0
     Model%ntchm = 0
@@ -6651,6 +6664,7 @@ module GFS_typedefs
     Model%ndche = NO_TRACER
 
     if (Model%rrfs_sd) then
+      Model%nkplume = 200      
       Model%nchem = 3
       Model%ndvel = 3
     endif
@@ -6810,6 +6824,8 @@ module GFS_typedefs
         print *, 'dust_gamma       : ',Model%dust_gamma
         print *, 'wetdep_ls_alpha  : ',Model%wetdep_ls_alpha
         print *, 'plume_alpha      : ',Model%plume_alpha
+        print *, 'plume_beta       : ',Model%plume_beta
+        print *, 'plume_beta_qv    : ',Model%plume_beta_qv
         print *, 'ebb_dcycle       : ',Model%ebb_dcycle
         print *, 'seas_opt         : ',Model%seas_opt
         print *, 'dust_opt         : ',Model%dust_opt
@@ -7274,6 +7290,7 @@ module GFS_typedefs
       print *, ' ndchm             : ', Model%ndchm
       print *, ' ndchs             : ', Model%ndchs
       print *, ' ndche             : ', Model%ndche
+      print *, ' nkplume           : ', Model%nkplume
       print *, ' fscav             : ', Model%fscav
       print *, ' '
       print *, 'derived totals for phy_f*d'
