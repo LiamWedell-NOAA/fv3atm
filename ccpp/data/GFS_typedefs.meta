@@ -3203,6 +3203,14 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+[wmax_plume]
+  standard_name = maximum_vert_vel_from_plumerise
+  long_name = maximum vert velocity from plumerise
+  units = none
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
 [rho_dry]
   standard_name = dry_air_density
   long_name = dry air density
@@ -6532,6 +6540,12 @@
   units = index
   dimensions = ()
   type = integer
+[nkplume]
+  standard_name = number_of_vert_levels_plumerise
+  long_name = number of vertical levels in plumerise code
+  units = count
+  dimensions = ()
+  type = integer
 [nchem]
   standard_name = number_of_chemical_species_vertically_mixed
   long_name = number of chemical vertically mixed
@@ -6803,6 +6817,22 @@
 [wetdep_ls_alpha]
   standard_name = alpha_for_ls_wet_depoistion
   long_name = alpha paramter for ls wet deposition
+  units = none
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
+[plume_beta_qv]
+  standard_name = beta_for_qv_flux
+  long_name = beta paramter for vapor fluxes
+  units = none
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
+[plume_beta]
+  standard_name = beta_for_plumerise_scheme
+  long_name = beta paramter for plumerise scheme
   units = none
   dimensions = ()
   type = real
