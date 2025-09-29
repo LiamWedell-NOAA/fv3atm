@@ -1559,7 +1559,7 @@ module GFS_typedefs
     integer              :: n_dbg_lines
     integer              :: hwp_method
     logical              :: add_fire_moist_flux ! Flag to add moisture fluxes based on PM2.5 emissions
-    real(kind=kind_phys) :: sc_factor
+    real(kind=kind_phys) :: hwp_alpha 
     logical              :: aero_ind_fdb    ! WFA/IFA indirect
     logical              :: aero_dir_fdb    ! smoke/dust direct
     logical              :: rrfs_smoke_debug
@@ -4259,7 +4259,7 @@ module GFS_typedefs
     integer :: wetdep_ls_opt  = 1
     logical :: do_plumerise   = .true.
     logical :: add_fire_moist_flux = .false.
-    real(kind=kind_phys) :: sc_factor = 1.0
+    real(kind=kind_phys) :: hwp_alpha = 1.0
     integer :: addsmoke_flag  = 1
     integer :: plumerisefire_frq = 60
     integer :: n_dbg_lines = 3
@@ -4436,7 +4436,7 @@ module GFS_typedefs
                                rrfs_smoke_debug, do_plumerise, plumerisefire_frq,           &
                                addsmoke_flag, enh_mix, mix_chem, smoke_dir_fdb_coef,        &
                                do_smoke_transport,smoke_conv_wet_coef,n_dbg_lines,          &
-                               do_wetrm_thmp, add_fire_moist_flux, sc_factor, plume_alpha,  &
+                               do_wetrm_thmp, add_fire_moist_flux, hwp_alpha, plume_alpha,  &
                                plume_beta,plume_beta_qv,                                    &
                           !--- C3/GF closures
                                ichoice,ichoicem,ichoice_s,gf_coldstart,                     &
@@ -4682,7 +4682,7 @@ module GFS_typedefs
     Model%plumerisefire_frq = plumerisefire_frq
     Model%addsmoke_flag     = addsmoke_flag
     Model%add_fire_moist_flux = add_fire_moist_flux
-    Model%sc_factor         = sc_factor
+    Model%hwp_alpha         = hwp_alpha
     Model%hwp_method        = hwp_method
     Model%aero_ind_fdb      = aero_ind_fdb
     Model%aero_dir_fdb      = aero_dir_fdb
@@ -6837,7 +6837,7 @@ module GFS_typedefs
         print *, 'do_plumerise     : ',Model%do_plumerise
         print *, 'plumerisefire_frq: ',Model%plumerisefire_frq
         print *, 'add_fire_moist_flux: ',Model%add_fire_moist_flux
-        print *, 'sc_factor        : ',Model%sc_factor
+        print *, ' hwp_alpha       : ',Model%hwp_alpha
         print *, 'addsmoke_flag    : ',Model%addsmoke_flag
         print *, 'hwp_method       : ',Model%hwp_method
         print *, 'aero_ind_fdb     : ',Model%aero_ind_fdb
