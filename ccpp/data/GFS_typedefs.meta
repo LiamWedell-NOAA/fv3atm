@@ -4889,7 +4889,7 @@
   units = flag
   dimensions = ()
   type = logical
-[sc_factor]
+[hwp_alpha]
   standard_name = scale_factor_for_wildfire_emissions
   long_name = scale factor for wildfire emissions
   units = 1
