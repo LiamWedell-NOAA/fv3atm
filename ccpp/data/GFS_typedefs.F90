@@ -1545,6 +1545,7 @@ module GFS_typedefs
     real(kind=kind_phys) :: plume_alpha       !< alpha parameter for plumerise scheme
     real(kind=kind_phys) :: plume_beta        !< beta parameter for plumerise scheme
     real(kind=kind_phys) :: plume_beta_qv     !< beta parameter for qv fluxe
+    integer              :: plume_sfc_opt     !< 1:first level only; 2:first two levels
     integer              :: ebb_dcycle        !< 1:retro; 2:forecast of fire emission
     integer              :: seas_opt
     integer              :: dust_opt
@@ -4249,6 +4250,7 @@ module GFS_typedefs
     real(kind=kind_phys) :: plume_beta = 1.6
     real(kind=kind_phys) :: plume_beta_qv = 1.0
     integer :: dust_moist_opt = 1         ! fecan :1  else shao
+    integer :: plume_sfc_opt = 2
     integer :: ebb_dcycle = 2             ! 1:retro; 2:forecast
     integer :: seas_opt = 2
     integer :: dust_opt = 1
@@ -4432,6 +4434,7 @@ module GFS_typedefs
                                dust_alpha, dust_gamma, wetdep_ls_alpha,                     &
                                seas_opt, dust_opt, drydep_opt, coarsepm_settling,           &
                                plume_wind_eff,ebb_dcycle, extended_sd_diags,                &
+                               plume_sfc_opt,                                               &
                                wetdep_ls_opt, hwp_method, aero_ind_fdb, aero_dir_fdb,       &
                                rrfs_smoke_debug, do_plumerise, plumerisefire_frq,           &
                                addsmoke_flag, enh_mix, mix_chem, smoke_dir_fdb_coef,        &
@@ -4669,6 +4672,7 @@ module GFS_typedefs
     Model%plume_alpha       = plume_alpha
     Model%plume_beta        = plume_beta
     Model%plume_beta_qv     = plume_beta_qv
+    Model%plume_sfc_opt     = plume_sfc_opt
     Model%ebb_dcycle        = ebb_dcycle
     Model%seas_opt          = seas_opt
     Model%dust_opt          = dust_opt
@@ -6826,6 +6830,7 @@ module GFS_typedefs
         print *, 'plume_alpha      : ',Model%plume_alpha
         print *, 'plume_beta       : ',Model%plume_beta
         print *, 'plume_beta_qv    : ',Model%plume_beta_qv
+        print *, 'plume_sfc_opt    : ',Model%plume_sfc_opt
         print *, 'ebb_dcycle       : ',Model%ebb_dcycle
         print *, 'seas_opt         : ',Model%seas_opt
         print *, 'dust_opt         : ',Model%dust_opt

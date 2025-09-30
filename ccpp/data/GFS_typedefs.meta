@@ -6844,6 +6844,13 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+[plume_sfc_opt]
+  standard_name = control_for_smoke_release_at_surface
+  long_name = rrfs smoke release at surface option
+  units = index
+  dimensions = ()
+  type = integer
+  active = (do_smoke_coupling)
 [ebb_dcycle]
   standard_name = control_for_diurnal_cycle_of_biomass_burning_emissions
   long_name = rrfs smoke diurnal cycle option
