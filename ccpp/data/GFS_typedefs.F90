@@ -253,6 +253,7 @@ module GFS_typedefs
     real (kind=kind_phys), pointer :: weasdi (:)   => null()  !< weasd over ice
     real (kind=kind_phys), pointer :: hprime (:,:) => null()  !< orographic metrics
     real (kind=kind_phys), pointer :: dust12m_in  (:,:,:) => null()  !< fengsha dust input
+    real (kind=kind_phys), pointer :: eco_in(:,:) => null()   !< ecosystem map
     real (kind=kind_phys), pointer :: emi_in (:,:) => null()  !< anthropogenic background input
     real (kind=kind_phys), pointer :: smoke_RRFS(:,:,:) => null()  !< RRFS fire input hourly
     real (kind=kind_phys), pointer :: smoke2d_RRFS(:,:) => null()  !< RRFS fire input daily
@@ -462,6 +463,7 @@ module GFS_typedefs
     real (kind=kind_phys), pointer :: ebb_smoke_in(:)   => null()  !< input smoke emission
     real (kind=kind_phys), pointer :: frp_output  (:)   => null()  !< output FRP
     !--- For fire diurnal cycle
+    real (kind=kind_phys),  pointer ::  eco_id_in  (:)   => null()  !JR output eco map
     real (kind=kind_phys), pointer :: fhist       (:)   => null()  !< instantaneous fire coef_bb
     real (kind=kind_phys), pointer :: coef_bb_dc  (:)   => null()  !< instantaneous fire coef_bb
     integer, pointer               :: fire_type   (:)   => null()  !< fire type
@@ -2372,6 +2374,7 @@ module GFS_typedefs
     allocate (Sfcprop%dust12m_in  (IM,12,5))
     allocate (Sfcprop%smoke_RRFS(IM,24,2))
     allocate (Sfcprop%smoke2d_RRFS(IM,5))
+    allocate (Sfcprop%eco_in   (IM,1))
     allocate (Sfcprop%emi_in   (IM,1))
     allocate(Sfcprop%albdirvis_lnd (IM))
     allocate(Sfcprop%albdirnir_lnd (IM))
@@ -2427,6 +2430,7 @@ module GFS_typedefs
     Sfcprop%weasdi    = clear_val
     Sfcprop%hprime    = clear_val
     Sfcprop%dust12m_in= clear_val
+    Sfcprop%eco_in    = clear_va
     Sfcprop%emi_in    = clear_val
     Sfcprop%smoke_RRFS= clear_val
     Sfcprop%smoke2d_RRFS= clear_val
@@ -2993,6 +2997,7 @@ module GFS_typedefs
       allocate (Sfcprop%emanoc    (IM))
       allocate (Sfcprop%ebb_smoke_in (IM))
       allocate (Sfcprop%frp_output (IM))
+      allocate (Sfcprop%eco_id_in  (IM))  !JR ECO map out
       allocate (Sfcprop%fhist     (IM))
       allocate (Sfcprop%coef_bb_dc(IM))
       allocate (Sfcprop%fire_type (IM))
@@ -3007,6 +3012,7 @@ module GFS_typedefs
       Sfcprop%emanoc     = clear_val
       Sfcprop%ebb_smoke_in = clear_val
       Sfcprop%frp_output  = clear_val
+      Sfcprop%eco_id_in    = clear_val
       Sfcprop%fhist      = 1.
       Sfcprop%coef_bb_dc = clear_val
       Sfcprop%fire_type  = 0
@@ -3020,6 +3026,7 @@ module GFS_typedefs
       allocate (Sfcprop%emanoc    (0))
       allocate (Sfcprop%ebb_smoke_in (0))
       allocate (Sfcprop%frp_output (0))
+      allocate (Sfcprop%eco_id_in (0))  !JR ECO map in
       allocate (Sfcprop%fhist     (0))
       allocate (Sfcprop%coef_bb_dc(0))
       allocate (Sfcprop%fire_type (0))

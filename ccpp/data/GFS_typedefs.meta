@@ -2296,6 +2296,22 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+[eco_id_in]
+  standard_name = ecoregion_id
+  long_name = ecoregion id
+  units = none
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
+[eco_in]
+  standard_name = ecosystem_map
+  long_name = ecosytem map RRFS
+  units = various
+  dimensions = (horizontal_loop_extent,1)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
 [fhist]
   standard_name = fire_hist
   long_name = coefficient to scale the fire activity depending on the fire duration

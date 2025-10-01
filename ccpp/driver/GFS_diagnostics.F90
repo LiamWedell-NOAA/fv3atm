@@ -4797,6 +4797,19 @@ module GFS_diagnostics
        ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%fhist
       enddo
 
+      !JR ECO Check
+      idx = idx + 1
+      ExtDiag(idx)%axes = 2
+      ExtDiag(idx)%name = 'eco_id_in'
+      ExtDiag(idx)%desc = 'ecosystem id input'
+      ExtDiag(idx)%unit = ''
+      ExtDiag(idx)%mod_name = 'gfs_sfc'
+      allocate (ExtDiag(idx)%data(nblks))
+      do nb = 1,nblks
+      ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%eco_id_in
+      enddo
+      !JR ECO check ends
+
       if (Model%ebb_dcycle == 2 ) then
 
       idx = idx + 1

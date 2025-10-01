@@ -78,6 +78,9 @@ module fv3atm_restart_io_mod
   !>@ Filename template for monthly dust data for RRFS_SD. FMS may add grid and tile information to the name
   character(len=32), parameter  :: fn_dust12m= 'dust12m_data.nc'
 
+  !>@ Filename template for RRFS-SD ecosystem data. FMS may add grid and tile information to the name
+  character(len=32), parameter  :: fn_eco    = 'eco_data.nc'
+
   !>@ Filename template for RRFS-SD emissions data. FMS may add grid and tile information to the name
   character(len=32), parameter  :: fn_emi    = 'emi_data.nc'
 
@@ -535,7 +538,7 @@ contains
     type(Sfc_io_data_type) :: sfc
     type(Oro_io_data_type) :: oro
 
-    type(FmsNetcdfDomainFile_t) :: Oro_restart, Sfc_restart, dust12m_restart, emi_restart, rrfssd_restart
+    type(FmsNetcdfDomainFile_t) :: Oro_restart, Sfc_restart, dust12m_restart,  eco_restart, emi_restart, rrfssd_restart
     type(FmsNetcdfDomainFile_t) :: Oro_ls_restart, Oro_ss_restart
     type(domain2D) :: domain_for_read
     integer :: read_layout(2)
@@ -586,6 +589,24 @@ contains
 
       !--- Copy to Sfcprop and free temporary arrays:
       call rrfs_sd_emis%copy_dust12m(Sfcprop, Atm_block)
+
+      !----------------------------------------------
+
+      !--- open ecosystem file
+      infile=trim(indir)//'/'//trim(fn_eco)
+      amiopen=open_file(eco_restart, trim(infile), 'read', domain=fv_domain, is_restart=.true., dont_add_res_to_filename=.true.)
+      if (.not.amiopen) call mpp_error( FATAL, 'Error with opening file'//trim(infile) )
+
+      ! Register axes and variables, allocate memory
+      call rrfs_sd_emis%register_eco(eco_restart, Atm_block)
+
+      !--- read eco restart/data
+      call mpp_error(NOTE,'reading eco information from INPUT/eco_data.nc')
+      call read_restart(eco_restart)
+      call close_file(eco_restart)
+
+      !--- Copy to Sfcprop and free temporary arrays:
+      call rrfs_sd_emis%copy_eco(Sfcprop, Atm_block)
 
       !----------------------------------------------
 

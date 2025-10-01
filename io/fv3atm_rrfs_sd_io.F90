@@ -66,11 +66,13 @@ module fv3atm_rrfs_sd_io
     integer, private :: nvar_fire2d = 5
 
     character(len=32), pointer, dimension(:), private :: dust12m_name => null()
+    character(len=32), pointer, dimension(:), private :: eco_name => null()
     character(len=32), pointer, dimension(:), private :: emi_name => null()
     character(len=32), pointer, dimension(:), private :: fire_name => null()
     character(len=32), pointer, dimension(:), private :: fire_name2d => null()
 
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: dust12m_var => null()
+    real(kind=kind_phys), pointer, dimension(:,:),     private :: eco_var => null()   !JR eco map
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: emi_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: fire_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:  ), private :: fire_var2d => null()
@@ -639,6 +641,71 @@ contains
     enddo
   end subroutine rrfs_sd_emissions_copy_fire
 
+  !JR starts, phase 2 ecoregions
+    subroutine rrfs_sd_emissions_register_eco(data, restart, Atm_block)
+    implicit none
+    class(rrfs_sd_emissions_type) :: data
+    type(FmsNetcdfDomainFile_t) :: restart
+    type(block_control_type), intent(in) :: Atm_block
+
+    real(kind=kind_phys) , pointer, dimension(:,:) :: var_p2 => NULL()
+    integer :: num, nx, ny
+
+    if(associated(data%eco_name)) then
+      deallocate(data%eco_name)
+      nullify(data%eco_name)
+    endif
+    
+    if(associated(data%eco_var)) then
+      deallocate(data%eco_var)
+      nullify(data%eco_var)
+    endif
+
+    !--- allocate the various containers needed for rrfssd fire data
+    call get_nx_ny_from_atm(Atm_block, nx, ny)
+    allocate(data%eco_name(data%nvar_eco))
+    allocate(data%eco_var(nx, ny))
+    !allocate(data%eco_var(nx,ny,data%nvar_eco))
+
+    ! For the operational system
+    data%eco_name(1)  = 'ecoregion_ID'  ! 2d
+
+    !--- register axis
+    call register_axis(restart, 'lon', 'X')
+    call register_axis(restart, 'lat', 'Y')
+
+    !--- register the 2D fields
+    !call register_axis(restart, 't', 1) !JR ecomap, there is not time dimension in the file
+    do num = 1,data%nvar_eco
+     !var_p2 => data%eco_var(:,:,num)
+     var_p2 => data%eco_var(:,:)
+     call register_restart_field(restart, data%eco_name(num), var_p2, &
+          dimensions=(/'lat', 'lon'/), is_optional=.true.)
+    enddo
+
+  end subroutine rrfs_sd_emissions_register_eco
+
+  ! --------------------------------------------------------------------
+
+  !>@ Called after register_eco() to copy data from internal arrays to the model grid and deallocate arrays
+  subroutine rrfs_sd_emissions_copy_eco(data, Sfcprop, Atm_block)
+    implicit none
+    class(rrfs_sd_emissions_type) :: data
+    type(GFS_sfcprop_type),    intent(inout) :: Sfcprop(:)
+    type(block_control_type), intent(in) :: Atm_block
+
+    integer :: nb, ix, k, i, j
+      do nb = 1, Atm_block%nblks
+      do ix = 1, Atm_block%blksz(nb)
+        i = Atm_block%index(nb)%ii(ix) - Atm_block%isc + 1
+        j = Atm_block%index(nb)%jj(ix) - Atm_block%jsc + 1
+        !--- 2D variables
+        Sfcprop(nb)%eco_in(ix,1)  = data%eco_var(i,j)
+      enddo
+    enddo
+  end subroutine rrfs_sd_emissions_copy_eco  
+  !JR ends  
+
   !>@ Destructor for rrfs_sd_emissions_type
   subroutine rrfs_sd_emissions_final(data)
     implicit none
@@ -652,9 +719,11 @@ contains
     endif
 
     IF_ASSOC_DEALLOC_NULL(dust12m_name)
+    IF_ASSOC_DEALLOC_NULL(eco_name)
     IF_ASSOC_DEALLOC_NULL(emi_name)
     IF_ASSOC_DEALLOC_NULL(fire_name)
     IF_ASSOC_DEALLOC_NULL(dust12m_var)
+    IF_ASSOC_DEALLOC_NULL(eco_var)
     IF_ASSOC_DEALLOC_NULL(emi_var)
     IF_ASSOC_DEALLOC_NULL(fire_var)
 
