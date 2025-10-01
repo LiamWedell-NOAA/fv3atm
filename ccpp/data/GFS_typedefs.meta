@@ -6886,6 +6886,13 @@
   dimensions = ()
   type = integer
   active = (do_smoke_coupling)
+[plume_burntarea_delta]
+  standard_name = control_for_plumerise_burntarea_delta
+  long_name = plumerise burnt area delta
+  units = index
+  dimensions = ()
+  type = real
+  active = (do_smoke_coupling)
 [plume_wind_eff]
   standard_name = option_for_wind_effects_on_smoke_plumerise
   long_name = wind effect plumerise option

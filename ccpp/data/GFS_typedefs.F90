@@ -1552,6 +1552,7 @@ module GFS_typedefs
     integer              :: drydep_opt
     integer              :: coarsepm_settling
     integer              :: plume_wind_eff
+    real(kind=kind_phys) :: plume_burntarea_delta
     logical              :: extended_sd_diags
     integer              :: wetdep_ls_opt
     logical              :: do_plumerise
@@ -4257,6 +4258,7 @@ module GFS_typedefs
     integer :: drydep_opt  = 1
     integer :: coarsepm_settling  = 1
     integer :: plume_wind_eff = 1
+    real(kind=kind_phys) :: plume_burntarea_delta = 0.5
     logical :: extended_sd_diags = .true.
     integer :: wetdep_ls_opt  = 1
     logical :: do_plumerise   = .true.
@@ -4433,7 +4435,7 @@ module GFS_typedefs
                                dust_drylimit_factor, dust_moist_correction, dust_moist_opt, &
                                dust_alpha, dust_gamma, wetdep_ls_alpha,                     &
                                seas_opt, dust_opt, drydep_opt, coarsepm_settling,           &
-                               plume_wind_eff,ebb_dcycle, extended_sd_diags,                &
+                               plume_wind_eff,plume_burntarea_delta,ebb_dcycle, extended_sd_diags,                &
                                plume_sfc_opt,                                               &
                                wetdep_ls_opt, hwp_method, aero_ind_fdb, aero_dir_fdb,       &
                                rrfs_smoke_debug, do_plumerise, plumerisefire_frq,           &
@@ -4679,6 +4681,7 @@ module GFS_typedefs
     Model%drydep_opt        = drydep_opt
     Model%coarsepm_settling = coarsepm_settling
     Model%plume_wind_eff    = plume_wind_eff
+    Model%plume_burntarea_delta = plume_burntarea_delta
     Model%extended_sd_diags = extended_sd_diags
     Model%wetdep_ls_opt     = wetdep_ls_opt
     Model%do_plumerise      = do_plumerise
@@ -6836,6 +6839,7 @@ module GFS_typedefs
         print *, 'dust_opt         : ',Model%dust_opt
         print *, 'drydep_opt       : ',Model%drydep_opt
         print *, 'coarsepm_settling: ',Model%coarsepm_settling
+        print *, 'plume_burntarea_delta: ',Model%plume_burntarea_delta
         print *, 'plume_wind_eff   : ',Model%plume_wind_eff
         print *, 'extended_sd_diags: ',Model%extended_sd_diags
         print *, 'wetdep_ls_opt    : ',Model%wetdep_ls_opt
