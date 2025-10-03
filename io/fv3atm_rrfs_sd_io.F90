@@ -24,7 +24,8 @@ module fv3atm_rrfs_sd_io
   public :: rrfs_sd_emissions_type, rrfs_sd_emissions_final, &
        rrfs_sd_emissions_register_dust12m, rrfs_sd_emissions_copy_dust12m, &
        rrfs_sd_emissions_register_emi, rrfs_sd_emissions_copy_emi, &
-       rrfs_sd_emissions_register_fire, rrfs_sd_emissions_copy_fire
+       rrfs_sd_emissions_register_fire, rrfs_sd_emissions_copy_fire, &
+       rrfs_sd_emissions_register_eco, rrfs_sd_emissions_copy_eco  !JR eco map
 
   !>\defgroup fv3atm_rrfs_sd_io module
   !> @{
@@ -35,7 +36,7 @@ module fv3atm_rrfs_sd_io
     ! write RRFS-SD restart and axis variables.
 
     real(kind_phys), pointer, private, dimension(:,:) :: & ! i,j variables
-         emdust=>null(), emseas=>null(), emanoc=>null(), fhist=>null(), coef_bb_dc=>null()
+         emdust=>null(), emseas=>null(), emanoc=>null(), fhist=>null(), coef_bb_dc_1=>null(), coef_bb_dc_2=>null()
 
     real(kind_phys), pointer, private, dimension(:,:,:) :: &
          fire_in=>null() ! i, j, fire_aux_data_levels
@@ -61,9 +62,18 @@ module fv3atm_rrfs_sd_io
   !>@ Temporary data storage for reading RRFS-SD emissions data
   type rrfs_sd_emissions_type
     integer, private :: nvar_dust12m = 5
+    integer, private :: nvar_eco = 1
     integer, private :: nvar_emi = 1
     integer, private :: nvar_fire = 2
+<<<<<<< Updated upstream
     integer, private :: nvar_fire2d = 5
+=======
+    integer, private :: nvar_fire2d = 6 !JR FMC
+    !integer, private :: nvar_fire2d = 5
+    !JR added method 6, same parameters as used in ebb2
+    integer, private :: nvar_firem6 = 5
+    !JR ends
+>>>>>>> Stashed changes
 
     character(len=32), pointer, dimension(:), private :: dust12m_name => null()
     character(len=32), pointer, dimension(:), private :: eco_name => null()
@@ -72,6 +82,10 @@ module fv3atm_rrfs_sd_io
     character(len=32), pointer, dimension(:), private :: fire_name2d => null()
 
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: dust12m_var => null()
+<<<<<<< Updated upstream
+=======
+    !real(kind=kind_phys), pointer, dimension(:,:,:  ), private :: eco_var => null()
+>>>>>>> Stashed changes
     real(kind=kind_phys), pointer, dimension(:,:),     private :: eco_var => null()   !JR eco map
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: emi_var => null()
     real(kind=kind_phys), pointer, dimension(:,:,:,:), private :: fire_var => null()
@@ -87,6 +101,9 @@ module fv3atm_rrfs_sd_io
 
     procedure, public :: register_fire => rrfs_sd_emissions_register_fire
     procedure, public :: copy_fire => rrfs_sd_emissions_copy_fire
+
+    procedure, public :: register_eco => rrfs_sd_emissions_register_eco
+    procedure, public :: copy_eco => rrfs_sd_emissions_copy_eco
 
     final :: rrfs_sd_emissions_final
   end type rrfs_sd_emissions_type
@@ -142,7 +159,8 @@ contains
     allocate(data%emseas(nx,ny))
     allocate(data%emanoc(nx,ny))
     allocate(data%fhist(nx,ny))
-    allocate(data%coef_bb_dc(nx,ny))
+    allocate(data%coef_bb_dc_1(nx,ny))
+    allocate(data%coef_bb_dc_2(nx,ny))
     allocate(data%fire_aux_data_levels(Model%fire_aux_data_levels))
     allocate(data%fire_in(nx,ny,Model%fire_aux_data_levels))
 
@@ -180,7 +198,8 @@ contains
         data%emseas(i,j) = 0
         data%emanoc(i,j) = 0
         data%fhist(i,j) = 1.
-        data%coef_bb_dc(i,j) = 0
+        data%coef_bb_dc_1(i,j) = 0
+        data%coef_bb_dc_2(i,j) = 0
 
         data%fire_in(i,j,:) = 0
       end do
@@ -216,7 +235,9 @@ contains
          dimensions=(/'xaxis_1', 'yaxis_1', 'Time   '/), chunksizes=chunksizes2d, is_optional=.true.)
     call register_restart_field(Sfc_restart, 'fhist', data%fhist, &
          dimensions=(/'xaxis_1', 'yaxis_1', 'Time   '/), chunksizes=chunksizes2d, is_optional=.true.)
-    call register_restart_field(Sfc_restart, 'coef_bb_dc', data%coef_bb_dc, &
+    call register_restart_field(Sfc_restart, 'coef_bb_dc_1', data%coef_bb_dc_1, &
+         dimensions=(/'xaxis_1', 'yaxis_1', 'Time   '/), chunksizes=chunksizes2d, is_optional=.true.)
+    call register_restart_field(Sfc_restart, 'coef_bb_dc_2', data%coef_bb_dc_2, &
          dimensions=(/'xaxis_1', 'yaxis_1', 'Time   '/), chunksizes=chunksizes2d, is_optional=.true.)
 
     ! Register 3D field
@@ -248,7 +269,8 @@ contains
     call create_2d_field_and_add_to_bundle(data%emseas, "emseas", trim(outputfile), grid, bundle)
     call create_2d_field_and_add_to_bundle(data%emanoc, "emanoc", trim(outputfile), grid, bundle)
     call create_2d_field_and_add_to_bundle(data%fhist, "fhist", trim(outputfile), grid, bundle)
-    call create_2d_field_and_add_to_bundle(data%coef_bb_dc, "coef_bb_dc", trim(outputfile), grid, bundle)
+    call create_2d_field_and_add_to_bundle(data%coef_bb_dc_1, "coef_bb_dc_1", trim(outputfile), grid, bundle)
+    call create_2d_field_and_add_to_bundle(data%coef_bb_dc_2, "coef_bb_dc_2", trim(outputfile), grid, bundle)
 
     ! Register 3D field
     call create_3d_field_and_add_to_bundle(data%fire_in, 'fire_in', 'fire_aux_data_levels', &
@@ -291,7 +313,8 @@ contains
     IF_ASSOC_DEALLOC_NULL(emseas)
     IF_ASSOC_DEALLOC_NULL(emanoc)
     IF_ASSOC_DEALLOC_NULL(fhist)
-    IF_ASSOC_DEALLOC_NULL(coef_bb_dc)
+    IF_ASSOC_DEALLOC_NULL(coef_bb_dc_1)
+    IF_ASSOC_DEALLOC_NULL(coef_bb_dc_2)
 
     IF_ASSOC_DEALLOC_NULL(fire_in)
 
@@ -324,7 +347,8 @@ contains
         Sfcprop(nb)%emseas(ix) = data%emseas(i,j)
         Sfcprop(nb)%emanoc(ix) = data%emanoc(i,j)
         Sfcprop(nb)%fhist(ix) = data%fhist(i,j)
-        Sfcprop(nb)%coef_bb_dc(ix) = data%coef_bb_dc(i,j)
+        Sfcprop(nb)%coef_bb_dc_1(ix) = data%coef_bb_dc_1(i,j)
+        Sfcprop(nb)%coef_bb_dc_2(ix) = data%coef_bb_dc_2(i,j)
 
         Sfcprop(nb)%fire_in(ix,:) = data%fire_in(i,j,:)
       enddo
@@ -357,7 +381,8 @@ contains
         data%emseas(i,j) = Sfcprop(nb)%emseas(ix)
         data%emanoc(i,j) = Sfcprop(nb)%emanoc(ix)
         data%fhist(i,j) = Sfcprop(nb)%fhist(ix)
-        data%coef_bb_dc(i,j) = Sfcprop(nb)%coef_bb_dc(ix)
+        data%coef_bb_dc_1(i,j) = Sfcprop(nb)%coef_bb_dc_1(ix)
+        data%coef_bb_dc_2(i,j) = Sfcprop(nb)%coef_bb_dc_2(ix)
 
         data%fire_in(i,j,:) = Sfcprop(nb)%fire_in(ix,:)
       enddo
@@ -574,7 +599,8 @@ contains
     data%fire_name2d(2)  = 'frp_davg'
     data%fire_name2d(3)  = 'fire_end_hr'
     data%fire_name2d(4)  = 'hwp_davg'
-    data%fire_name2d(5)  = 'totprcp_24hrs'
+    !data%fire_name2d(5)  = 'totprcp_24hrs'
+    data%fire_name2d(6)  = 'fmc_hr'      !JR FMC test
 
     !--- register axis
     call register_axis(restart, 'lon', 'X')
@@ -628,12 +654,34 @@ contains
           Sfcprop(nb)%smoke_RRFS(ix,k,2)  = data%fire_var(i,j,k,2)
          enddo
         elseif (ebb_dcycle==2) then ! -- forecast mode
+<<<<<<< Updated upstream
         !--- 2D variables
           Sfcprop(nb)%smoke2d_RRFS(ix,1)  = data%fire_var2d(i,j,1)
           Sfcprop(nb)%smoke2d_RRFS(ix,2)  = data%fire_var2d(i,j,2)
           Sfcprop(nb)%smoke2d_RRFS(ix,3)  = data%fire_var2d(i,j,3)
           Sfcprop(nb)%smoke2d_RRFS(ix,4)  = data%fire_var2d(i,j,4)
           Sfcprop(nb)%smoke2d_RRFS(ix,5)  = data%fire_var2d(i,j,5)
+=======
+          if (hwp_alpha == 0.0) then
+            !--- 2D variables
+            Sfcprop(nb)%smoke2d_RRFS(ix,1)  = data%fire_var2d(i,j,1)
+            Sfcprop(nb)%smoke2d_RRFS(ix,2)  = data%fire_var2d(i,j,2)
+            Sfcprop(nb)%smoke2d_RRFS(ix,3)  = data%fire_var2d(i,j,3)
+            Sfcprop(nb)%smoke2d_RRFS(ix,4)  = data%fire_var2d(i,j,4)
+            !Sfcprop(nb)%smoke2d_RRFS(ix,5)  = data%fire_var2d(i,j,5)
+            Sfcprop(nb)%smoke2d_RRFS(ix,6)  = data%fire_var2d(i,j,6) !JR FMC test
+          else
+            !--- 3D variables
+            do k = 1, 4
+              Sfcprop(nb)%smokem6_RRFS(ix,k,1)  = data%fire_varm6(i,j,k,1)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,2)  = data%fire_varm6(i,j,k,2)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,3)  = data%fire_varm6(i,j,k,3)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,4)  = data%fire_varm6(i,j,k,4)
+              Sfcprop(nb)%smokem6_RRFS(ix,k,5)  = data%fire_varm6(i,j,k,5)
+            enddo
+          endif 
+          !JR ends
+>>>>>>> Stashed changes
         else
          ! -- user define their own fire emission
         endif
@@ -641,13 +689,25 @@ contains
     enddo
   end subroutine rrfs_sd_emissions_copy_fire
 
+<<<<<<< Updated upstream
   !JR starts, phase 2 ecoregions
     subroutine rrfs_sd_emissions_register_eco(data, restart, Atm_block)
+=======
+  ! --------------------------------------------------------------------
+
+  !>@ Allocates temporary arrays and registers variables for reading the fire data file.
+  subroutine rrfs_sd_emissions_register_eco(data, restart, Atm_block)
+>>>>>>> Stashed changes
     implicit none
     class(rrfs_sd_emissions_type) :: data
     type(FmsNetcdfDomainFile_t) :: restart
     type(block_control_type), intent(in) :: Atm_block
 
+<<<<<<< Updated upstream
+=======
+    !real(kind=kind_phys), pointer, dimension(:,:) :: var_p2 => NULL()
+    !real(kind=kind_phys), pointer, dimension(:,:,:) :: var3_p2 => NULL()
+>>>>>>> Stashed changes
     real(kind=kind_phys) , pointer, dimension(:,:) :: var_p2 => NULL()
     integer :: num, nx, ny
 
@@ -655,7 +715,11 @@ contains
       deallocate(data%eco_name)
       nullify(data%eco_name)
     endif
+<<<<<<< Updated upstream
     
+=======
+
+>>>>>>> Stashed changes
     if(associated(data%eco_var)) then
       deallocate(data%eco_var)
       nullify(data%eco_var)
@@ -664,7 +728,11 @@ contains
     !--- allocate the various containers needed for rrfssd fire data
     call get_nx_ny_from_atm(Atm_block, nx, ny)
     allocate(data%eco_name(data%nvar_eco))
+<<<<<<< Updated upstream
     allocate(data%eco_var(nx, ny))
+=======
+    allocate(data%eco_var(nx, ny)) 
+>>>>>>> Stashed changes
     !allocate(data%eco_var(nx,ny,data%nvar_eco))
 
     ! For the operational system
@@ -695,16 +763,32 @@ contains
     type(block_control_type), intent(in) :: Atm_block
 
     integer :: nb, ix, k, i, j
+<<<<<<< Updated upstream
       do nb = 1, Atm_block%nblks
+=======
+
+    !$omp parallel do default(shared) private(i, j, nb, ix, k)
+    do nb = 1, Atm_block%nblks
+>>>>>>> Stashed changes
       do ix = 1, Atm_block%blksz(nb)
         i = Atm_block%index(nb)%ii(ix) - Atm_block%isc + 1
         j = Atm_block%index(nb)%jj(ix) - Atm_block%jsc + 1
         !--- 2D variables
         Sfcprop(nb)%eco_in(ix,1)  = data%eco_var(i,j)
+<<<<<<< Updated upstream
       enddo
     enddo
   end subroutine rrfs_sd_emissions_copy_eco  
   !JR ends  
+=======
+        !Sfcprop(nb)%eco_in(ix,2)  = data%eco_var(i,j,2)
+        !Sfcprop(nb)%eco_in(ix,3)  = data%eco_var(i,j,3)
+        !Sfcprop(nb)%eco_in(ix,4)  = data%eco_var(i,j,4)
+        !Sfcprop(nb)%eco_in(ix,5)  = data%eco_var(i,j,5)
+      enddo
+    enddo
+  end subroutine rrfs_sd_emissions_copy_eco
+>>>>>>> Stashed changes
 
   !>@ Destructor for rrfs_sd_emissions_type
   subroutine rrfs_sd_emissions_final(data)

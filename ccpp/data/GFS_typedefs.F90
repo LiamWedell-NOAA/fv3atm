@@ -253,7 +253,11 @@ module GFS_typedefs
     real (kind=kind_phys), pointer :: weasdi (:)   => null()  !< weasd over ice
     real (kind=kind_phys), pointer :: hprime (:,:) => null()  !< orographic metrics
     real (kind=kind_phys), pointer :: dust12m_in  (:,:,:) => null()  !< fengsha dust input
+<<<<<<< Updated upstream
     real (kind=kind_phys), pointer :: eco_in(:,:) => null()   !< ecosystem map
+=======
+    real (kind=kind_phys), pointer :: eco_in(:,:) => null()  !< ecosystem map
+>>>>>>> Stashed changes
     real (kind=kind_phys), pointer :: emi_in (:,:) => null()  !< anthropogenic background input
     real (kind=kind_phys), pointer :: smoke_RRFS(:,:,:) => null()  !< RRFS fire input hourly
     real (kind=kind_phys), pointer :: smoke2d_RRFS(:,:) => null()  !< RRFS fire input daily
@@ -462,10 +466,17 @@ module GFS_typedefs
     !--- Smoke. These 2 arrays are input smoke emission and frp
     real (kind=kind_phys), pointer :: ebb_smoke_in(:)   => null()  !< input smoke emission
     real (kind=kind_phys), pointer :: frp_output  (:)   => null()  !< output FRP
+    real (kind=kind_phys),  pointer ::  eco_id_in  (:)   => null()  !JR output eco map
     !--- For fire diurnal cycle
+<<<<<<< Updated upstream
     real (kind=kind_phys),  pointer ::  eco_id_in  (:)   => null()  !JR output eco map
     real (kind=kind_phys), pointer :: fhist       (:)   => null()  !< instantaneous fire coef_bb
     real (kind=kind_phys), pointer :: coef_bb_dc  (:)   => null()  !< instantaneous fire coef_bb
+=======
+    real (kind=kind_phys), pointer :: fhist       (:)   => null()  !< fire history
+    real (kind=kind_phys), pointer :: coef_bb_dc_1(:)   => null()  !< instantaneous fire coef_bb
+    real (kind=kind_phys), pointer :: coef_bb_dc_2(:)   => null()  !< instantaneous fire coef_bb
+>>>>>>> Stashed changes
     integer, pointer               :: fire_type   (:)   => null()  !< fire type
     real (kind=kind_phys), pointer :: peak_hr     (:)   => null()  !< peak hour of fire emissions
     real (kind=kind_phys), pointer :: lu_nofire   (:)   => null()  !<lu_nofire pixels
@@ -1545,6 +1556,7 @@ module GFS_typedefs
     real(kind=kind_phys) :: dust_gamma        !< gamma parameter for fengsha dust scheme
     real(kind=kind_phys) :: wetdep_ls_alpha   !< alpha parameter for wet deposition
     real(kind=kind_phys) :: plume_alpha       !< alpha parameter for plumerise scheme
+    real(kind=kind_phys) :: plume_hfx_scaling !< scaling parameter for fire heat flux
     real(kind=kind_phys) :: plume_beta        !< beta parameter for plumerise scheme
     real(kind=kind_phys) :: plume_beta_qv     !< beta parameter for qv fluxe
     integer              :: plume_sfc_opt     !< 1:first level only; 2:first two levels
@@ -1553,6 +1565,7 @@ module GFS_typedefs
     integer              :: dust_opt
     integer              :: drydep_opt
     integer              :: coarsepm_settling
+    integer              :: use_rave_cloud_frac
     integer              :: plume_wind_eff
     real(kind=kind_phys) :: plume_burntarea_delta
     logical              :: extended_sd_diags
@@ -2374,6 +2387,10 @@ module GFS_typedefs
     allocate (Sfcprop%dust12m_in  (IM,12,5))
     allocate (Sfcprop%smoke_RRFS(IM,24,2))
     allocate (Sfcprop%smoke2d_RRFS(IM,5))
+<<<<<<< Updated upstream
+=======
+    allocate (Sfcprop%smokem6_RRFS(IM,5,6)) !JR added method 6
+>>>>>>> Stashed changes
     allocate (Sfcprop%eco_in   (IM,1))
     allocate (Sfcprop%emi_in   (IM,1))
     allocate(Sfcprop%albdirvis_lnd (IM))
@@ -2999,7 +3016,8 @@ module GFS_typedefs
       allocate (Sfcprop%frp_output (IM))
       allocate (Sfcprop%eco_id_in  (IM))  !JR ECO map out
       allocate (Sfcprop%fhist     (IM))
-      allocate (Sfcprop%coef_bb_dc(IM))
+      allocate (Sfcprop%coef_bb_dc_1(IM))
+      allocate (Sfcprop%coef_bb_dc_2(IM))      
       allocate (Sfcprop%fire_type (IM))
       allocate (Sfcprop%peak_hr   (IM))
       allocate (Sfcprop%lu_nofire (IM))
@@ -3011,10 +3029,18 @@ module GFS_typedefs
       Sfcprop%emseas     = clear_val
       Sfcprop%emanoc     = clear_val
       Sfcprop%ebb_smoke_in = clear_val
+<<<<<<< Updated upstream
       Sfcprop%frp_output  = clear_val
       Sfcprop%eco_id_in    = clear_val
       Sfcprop%fhist      = 1.
       Sfcprop%coef_bb_dc = clear_val
+=======
+      Sfcprop%frp_output   = clear_val
+      Sfcprop%eco_id_in    = clear_val
+      Sfcprop%fhist        = 1.
+      Sfcprop%coef_bb_dc_1 = clear_val
+      Sfcprop%coef_bb_dc_2 = clear_val
+>>>>>>> Stashed changes
       Sfcprop%fire_type  = 0
       Sfcprop%fire_in    = clear_val
       Sfcprop%peak_hr    = clear_val
@@ -3028,7 +3054,8 @@ module GFS_typedefs
       allocate (Sfcprop%frp_output (0))
       allocate (Sfcprop%eco_id_in (0))  !JR ECO map in
       allocate (Sfcprop%fhist     (0))
-      allocate (Sfcprop%coef_bb_dc(0))
+      allocate (Sfcprop%coef_bb_dc_1(0))
+      allocate (Sfcprop%coef_bb_dc_2(0))
       allocate (Sfcprop%fire_type (0))
       allocate (Sfcprop%peak_hr   (0))
       allocate (Sfcprop%lu_nofire (0))
@@ -4255,15 +4282,21 @@ module GFS_typedefs
     real(kind=kind_phys) :: dust_gamma = 0.
     real(kind=kind_phys) :: wetdep_ls_alpha = 0.5
     real(kind=kind_phys) :: plume_alpha = 0.05
+    real(kind=kind_phys) :: plume_hfx_scaling = 1.0
     real(kind=kind_phys) :: plume_beta = 1.6
     real(kind=kind_phys) :: plume_beta_qv = 1.0
     integer :: dust_moist_opt = 1         ! fecan :1  else shao
+<<<<<<< Updated upstream
     integer :: plume_sfc_opt = 2
+=======
+    integer :: plume_sfc_opt = 2 
+>>>>>>> Stashed changes
     integer :: ebb_dcycle = 2             ! 1:retro; 2:forecast
     integer :: seas_opt = 2
     integer :: dust_opt = 1
     integer :: drydep_opt  = 1
     integer :: coarsepm_settling  = 1
+    integer :: use_rave_cloud_frac = 0    
     integer :: plume_wind_eff = 1
     real(kind=kind_phys) :: plume_burntarea_delta = 0.5
     logical :: extended_sd_diags = .true.
@@ -4442,6 +4475,10 @@ module GFS_typedefs
                                dust_drylimit_factor, dust_moist_correction, dust_moist_opt, &
                                dust_alpha, dust_gamma, wetdep_ls_alpha,                     &
                                seas_opt, dust_opt, drydep_opt, coarsepm_settling,           &
+<<<<<<< Updated upstream
+=======
+                               use_rave_cloud_frac,                                         &
+>>>>>>> Stashed changes
                                plume_wind_eff,plume_burntarea_delta,ebb_dcycle, extended_sd_diags,                &
                                plume_sfc_opt,                                               &
                                wetdep_ls_opt, hwp_method, aero_ind_fdb, aero_dir_fdb,       &
@@ -4449,7 +4486,7 @@ module GFS_typedefs
                                addsmoke_flag, enh_mix, mix_chem, smoke_dir_fdb_coef,        &
                                do_smoke_transport,smoke_conv_wet_coef,n_dbg_lines,          &
                                do_wetrm_thmp, add_fire_moist_flux, hwp_alpha, plume_alpha,  &
-                               plume_beta,plume_beta_qv,                                    &
+                               plume_hfx_scaling, plume_beta, plume_beta_qv,                &
                           !--- C3/GF closures
                                ichoice,ichoicem,ichoice_s,gf_coldstart,                     &
                           !--- (DFI) time ranges with radar-prescribed microphysics tendencies
@@ -4679,6 +4716,7 @@ module GFS_typedefs
     Model%dust_gamma        = dust_gamma
     Model%wetdep_ls_alpha   = wetdep_ls_alpha
     Model%plume_alpha       = plume_alpha
+    Model%plume_hfx_scaling = plume_hfx_scaling
     Model%plume_beta        = plume_beta
     Model%plume_beta_qv     = plume_beta_qv
     Model%plume_sfc_opt     = plume_sfc_opt
@@ -4687,6 +4725,7 @@ module GFS_typedefs
     Model%dust_opt          = dust_opt
     Model%drydep_opt        = drydep_opt
     Model%coarsepm_settling = coarsepm_settling
+    Model%use_rave_cloud_frac = use_rave_cloud_frac
     Model%plume_wind_eff    = plume_wind_eff
     Model%plume_burntarea_delta = plume_burntarea_delta
     Model%extended_sd_diags = extended_sd_diags
@@ -6838,6 +6877,7 @@ module GFS_typedefs
         print *, 'dust_gamma       : ',Model%dust_gamma
         print *, 'wetdep_ls_alpha  : ',Model%wetdep_ls_alpha
         print *, 'plume_alpha      : ',Model%plume_alpha
+        print *, 'plume_hfx_scaling: ',Model%plume_hfx_scaling
         print *, 'plume_beta       : ',Model%plume_beta
         print *, 'plume_beta_qv    : ',Model%plume_beta_qv
         print *, 'plume_sfc_opt    : ',Model%plume_sfc_opt
@@ -6846,7 +6886,12 @@ module GFS_typedefs
         print *, 'dust_opt         : ',Model%dust_opt
         print *, 'drydep_opt       : ',Model%drydep_opt
         print *, 'coarsepm_settling: ',Model%coarsepm_settling
+<<<<<<< Updated upstream
         print *, 'plume_burntarea_delta: ',Model%plume_burntarea_delta
+=======
+        print *, 'use_rave_cloud_frac : ',Model%use_rave_cloud_frac
+        print *, 'plume_burntarea_delta   : ',Model%plume_burntarea_delta
+>>>>>>> Stashed changes
         print *, 'plume_wind_eff   : ',Model%plume_wind_eff
         print *, 'extended_sd_diags: ',Model%extended_sd_diags
         print *, 'wetdep_ls_opt    : ',Model%wetdep_ls_opt

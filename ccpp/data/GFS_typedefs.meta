@@ -949,6 +949,17 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+<<<<<<< Updated upstream
+=======
+[smokem6_RRFS]
+  standard_name = emission_smoke_6hrly
+  long_name = emission fire RRFS 6hr
+  units = various
+  dimensions = (horizontal_loop_extent,5,6)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
+>>>>>>> Stashed changes
 [z0base]
   standard_name = baseline_surface_roughness_length
   long_name = baseline surface roughness length for momentum in meter
@@ -2320,9 +2331,33 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
-[coef_bb_dc]
-  standard_name = coef_bb_dc
-  long_name = coef to estimate the fire emission
+[eco_id_in]
+  standard_name = ecoregion_id
+  long_name = ecoregion id
+  units = none
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
+[eco_in]
+  standard_name = ecosystem_map
+  long_name = ecosytem map RRFS
+  units = various
+  dimensions = (horizontal_loop_extent,1)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
+[coef_bb_dc_1]
+  standard_name = coef_bb_dc_1
+  long_name = coef to estimate the fire emission from 6hr
+  units = none
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
+[coef_bb_dc_2]
+  standard_name = coef_bb_dc_2
+  long_name = coef to estimate the fire emission from 24hr avg
   units = none
   dimensions = (horizontal_loop_extent)
   type = real
@@ -6844,6 +6879,14 @@
   type = real
   kind = kind_phys
   active = (do_smoke_coupling)
+[plume_hfx_scaling]
+  standard_name = scaling_for_fire_heat_flux
+  long_name = scaling paramter for fire heat flux
+  units = none
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  active = (do_smoke_coupling)
 [plume_beta]
   standard_name = beta_for_plumerise_scheme
   long_name = beta paramter for plumerise scheme
@@ -6902,6 +6945,16 @@
   dimensions = ()
   type = integer
   active = (do_smoke_coupling)
+<<<<<<< Updated upstream
+=======
+[use_rave_cloud_frac]
+  standard_name = option_for_using_cloud_fraction_from_rave
+  long_name = cloud fraction from rave
+  units = index
+  dimensions = ()
+  type = integer
+  active = (do_smoke_coupling)
+>>>>>>> Stashed changes
 [plume_burntarea_delta]
   standard_name = control_for_plumerise_burntarea_delta
   long_name = plumerise burnt area delta

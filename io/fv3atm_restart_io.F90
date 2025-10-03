@@ -538,7 +538,11 @@ contains
     type(Sfc_io_data_type) :: sfc
     type(Oro_io_data_type) :: oro
 
+<<<<<<< Updated upstream
     type(FmsNetcdfDomainFile_t) :: Oro_restart, Sfc_restart, dust12m_restart,  eco_restart, emi_restart, rrfssd_restart
+=======
+    type(FmsNetcdfDomainFile_t) :: Oro_restart, Sfc_restart, dust12m_restart, eco_restart, emi_restart, rrfssd_restart
+>>>>>>> Stashed changes
     type(FmsNetcdfDomainFile_t) :: Oro_ls_restart, Oro_ss_restart
     type(domain2D) :: domain_for_read
     integer :: read_layout(2)
@@ -600,7 +604,11 @@ contains
       ! Register axes and variables, allocate memory
       call rrfs_sd_emis%register_eco(eco_restart, Atm_block)
 
+<<<<<<< Updated upstream
       !--- read eco restart/data
+=======
+      !--- read anthropogenic eco restart/data
+>>>>>>> Stashed changes
       call mpp_error(NOTE,'reading eco information from INPUT/eco_data.nc')
       call read_restart(eco_restart)
       call close_file(eco_restart)
