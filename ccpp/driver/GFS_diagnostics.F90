@@ -4820,7 +4820,8 @@ module GFS_diagnostics
       ExtDiag(idx)%mod_name = 'gfs_sfc'
       allocate (ExtDiag(idx)%data(nblks))
       do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,3)
+       !ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,3)
+       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,1,3)
       enddo
 
       endif
@@ -4871,7 +4872,8 @@ module GFS_diagnostics
       ExtDiag(idx)%mod_name = 'gfs_sfc'
       allocate (ExtDiag(idx)%data(nblks))
       do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,1)
+       !ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,1)
+       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,2,5)
       enddo
 
       idx = idx + 1
@@ -4882,7 +4884,8 @@ module GFS_diagnostics
       ExtDiag(idx)%mod_name = 'gfs_sfc'
       allocate (ExtDiag(idx)%data(nblks))
       do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,2)
+       !ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,2)
+       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,1,5)
       enddo
 
 
@@ -4894,7 +4897,8 @@ module GFS_diagnostics
       ExtDiag(idx)%mod_name = 'gfs_sfc'
       allocate (ExtDiag(idx)%data(nblks))
       do nb = 1,nblks
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,4)
+       !ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,4)
+       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokem6_RRFS(:,4,5)
       enddo
 
       endif smoke_forecast_mode
