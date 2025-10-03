@@ -24,7 +24,8 @@ module fv3atm_rrfs_sd_io
   public :: rrfs_sd_emissions_type, rrfs_sd_emissions_final, &
        rrfs_sd_emissions_register_dust12m, rrfs_sd_emissions_copy_dust12m, &
        rrfs_sd_emissions_register_emi, rrfs_sd_emissions_copy_emi, &
-       rrfs_sd_emissions_register_fire, rrfs_sd_emissions_copy_fire
+       rrfs_sd_emissions_register_fire, rrfs_sd_emissions_copy_fire, &
+       rrfs_sd_emissions_register_eco, rrfs_sd_emissions_copy_eco  !JR eco map
 
   !>\defgroup fv3atm_rrfs_sd_io module
   !> @{
@@ -65,7 +66,8 @@ module fv3atm_rrfs_sd_io
     integer, private :: nvar_fire = 2
     integer, private :: nvar_fire2d = 5
     !JR added method 6, same parameters as used in ebb2
-    integer, private :: nvar_firedc6 = 5
+    integer, private :: nvar_firedc6 = 6
+    integer, private :: nvar_eco = 1
     !JR ends
 
     character(len=32), pointer, dimension(:), private :: dust12m_name => null()
@@ -92,6 +94,9 @@ module fv3atm_rrfs_sd_io
 
     procedure, public :: register_fire => rrfs_sd_emissions_register_fire
     procedure, public :: copy_fire => rrfs_sd_emissions_copy_fire
+
+    procedure, public :: register_eco => rrfs_sd_emissions_register_eco
+    procedure, public :: copy_eco => rrfs_sd_emissions_copy_eco
 
     final :: rrfs_sd_emissions_final
   end type rrfs_sd_emissions_type
@@ -630,7 +635,7 @@ contains
            dimensions=(/'t  ', 'lat', 'lon'/), is_optional = .true.)
      end do
      !--- Legacy 2D fields (optional, retained so model do not crash)
-     if (associate(data%fire_var2d)) then
+     if (associated(data%fire_var2d)) then
       call register_axis(restart, 't', 1)
       do num = 1,data%nvar_fire2d
        var_p2 => data%fire_var2d(:,:,num)
@@ -638,11 +643,13 @@ contains
            dimensions=(/'lat', 'lon'/), is_optional=.true.)
       enddo
      else
-     if (data%nvar_fire2d > 0) then
-      print *, "WARNING: fire_var2d requested but not allocated — skipping"
-     end if       
+       if (data%nvar_fire2d > 0) then
+         print *, "WARNING: fire_var2d requested but not allocated — skipping"
+       end if    
+     end if  
      ! -- user define their own fire emission
     endif
+    
     !JR ends
 
   end subroutine rrfs_sd_emissions_register_fire
