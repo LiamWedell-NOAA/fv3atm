@@ -605,7 +605,7 @@ contains
     data%fire_namedc6(3)  = 'fire_end_hr'
     data%fire_namedc6(4)  = 'hwp_davg'
     data%fire_namedc6(5)  = 'totprcp_24hrs'
-    data%fire_namedc6(6)  = 'cloud_Fraction'
+    data%fire_namedc6(6)  = 'cloud_fraction'
     !JR ends
 
     !--- register axis
