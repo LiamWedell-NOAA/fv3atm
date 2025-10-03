@@ -2430,7 +2430,7 @@ module GFS_typedefs
     Sfcprop%weasdi    = clear_val
     Sfcprop%hprime    = clear_val
     Sfcprop%dust12m_in= clear_val
-    Sfcprop%eco_in    = clear_va
+    Sfcprop%eco_in    = clear_val
     Sfcprop%emi_in    = clear_val
     Sfcprop%smoke_RRFS= clear_val
     Sfcprop%smoke2d_RRFS= clear_val
