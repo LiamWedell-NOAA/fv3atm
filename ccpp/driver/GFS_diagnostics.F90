@@ -4873,7 +4873,7 @@ module GFS_diagnostics
       allocate (ExtDiag(idx)%data(nblks))
       do nb = 1,nblks
        !ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smoke2d_RRFS(:,1)
-       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokedcm6_RRFS(:,2,5)
+       ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokedc6_RRFS(:,2,5)
       enddo
 
       idx = idx + 1
