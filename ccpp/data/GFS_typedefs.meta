@@ -6910,6 +6910,13 @@
   dimensions = ()
   type = integer
   active = (do_smoke_coupling)
+[use_rave_cloud_frac]
+  standard_name = option_for_using_cloud_fraction_from_rave
+  long_name = cloud fraction from rave
+  units = index
+  dimensions = ()
+  type = integer
+  active = (do_smoke_coupling)
 [plume_burntarea_delta]
   standard_name = control_for_plumerise_burntarea_delta
   long_name = plumerise burnt area delta
