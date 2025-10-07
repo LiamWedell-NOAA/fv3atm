@@ -4901,6 +4901,7 @@ module GFS_diagnostics
        ExtDiag(idx)%data(nb)%var2 => Sfcprop(nb)%smokedc6_RRFS(:,4,5)
       enddo
 
+
       endif smoke_forecast_mode
 
 

@@ -546,8 +546,10 @@ contains
     real(kind=kind_phys), pointer, dimension(:,:,:) :: var3_p2 => NULL()
     integer :: num, nx, ny
     integer :: ebb_dcycle
+    integer :: hwp_alpha
 
     ebb_dcycle=Model%ebb_dcycle
+    hwp_alpha =Model%hwp_alpha
 
     if(associated(data%fire_name)) then
       deallocate(data%fire_name)
@@ -598,19 +600,22 @@ contains
     data%fire_name(2)  = 'frp_avg_hr'    ! 2d x 24 hours
 
     ! For the operational system
-    data%fire_name2d(1)  = 'ebb_rate'  ! 2d
-    data%fire_name2d(2)  = 'frp_davg'
-    data%fire_name2d(3)  = 'fire_end_hr'
-    data%fire_name2d(4)  = 'hwp_davg'
-    data%fire_name2d(5)  = 'totprcp_24hrs'
-
-    !JR added potential names method 6
-    data%fire_namedc6(1)  = 'ebb_rate'  ! 2d * 4 hours
-    data%fire_namedc6(2)  = 'frp_davg'
-    data%fire_namedc6(3)  = 'fire_end_hr'
-    data%fire_namedc6(4)  = 'hwp_davg'
-    data%fire_namedc6(5)  = 'totprcp_24hrs'
-    data%fire_namedc6(6)  = 'cloud_fraction'
+    !JR starts. TODO: remove/remane fire_name2d
+    if (hwp_alpha < 1.0) then  
+      !JR added potential names method 6
+      data%fire_namedc6(1)  = 'ebb_rate'  ! 2d * 4 hours
+      data%fire_namedc6(2)  = 'frp_davg'
+      data%fire_namedc6(3)  = 'fire_end_hr'
+      data%fire_namedc6(4)  = 'hwp_davg'
+      data%fire_namedc6(5)  = 'totprcp_24hrs'
+      data%fire_namedc6(6)  = 'cloud_fraction'
+    else
+      data%fire_name2d(1)  = 'ebb_rate_2d'  ! 2d
+      data%fire_name2d(2)  = 'frp_davg_2d'
+      data%fire_name2d(3)  = 'fire_end_hr_2d'
+      data%fire_name2d(4)  = 'hwp_davg_2d'
+      data%fire_name2d(5)  = 'totprcp_24hrs_2d'      
+    endif  
     !JR ends
 
     !--- register axis
@@ -626,26 +631,23 @@ contains
      enddo
     elseif (ebb_dcycle==2) then ! -- forecast mode
      !JR st: keeping both but removing hwp_alpha condition 
-     !--- register the 2D fields
-     !--- Always register the 3D fields (active path)
-     call register_axis(restart, 't', 5)
-     do num = 1, data%nvar_firedc6
-      var3_p2 => data%fire_vardc6(:,:,:,num) 
-      call register_restart_field(restart, data%fire_namedc6(num), var3_p2, &
-           dimensions=(/'t  ', 'lat', 'lon'/), is_optional = .true.)
-     end do
-     !--- Legacy 2D fields (optional, retained so model do not crash)
-     if (associated(data%fire_var2d)) then
-      call register_axis(restart, 't', 1)
-      do num = 1,data%nvar_fire2d
-       var_p2 => data%fire_var2d(:,:,num)
-       call register_restart_field(restart, data%fire_name2d(num), var_p2, &
-           dimensions=(/'lat', 'lon'/), is_optional=.true.)
-      enddo
+     !--- Always register the 3D fields 
+     if (hwp_alpha < 1.0) then
+       call register_axis(restart, 't', 5)
+       do num = 1, data%nvar_firedc6
+         !if (all(data%fire_name2d(1:data%nvar_fire2d) /= data%fire_namedc6(num))) then !JR TODO: REMOVE WHEN REMOVING smoke2d_RRFS method
+         var3_p2 => data%fire_vardc6(:,:,:,num) 
+         call register_restart_field(restart, data%fire_namedc6(num), var3_p2, &
+             dimensions=(/'t  ', 'lat', 'lon'/), is_optional = .true.)
+       enddo
      else
-       if (data%nvar_fire2d > 0) then
-         print *, "WARNING: fire_var2d requested but not allocated — skipping"
-       end if    
+     !--- Legacy 2D fields (optional, retained so model do not crash)
+       call register_axis(restart, 't', 1)
+       do num = 1,data%nvar_fire2d
+         var_p2 => data%fire_var2d(:,:,num)
+         call register_restart_field(restart, data%fire_name2d(num), var_p2, &
+             dimensions=(/'lat', 'lon'/), is_optional=.true.)
+       enddo
      end if  
      ! -- user define their own fire emission
     endif
@@ -666,8 +668,10 @@ contains
 
     integer :: nb, ix, k, i, j
     integer :: ebb_dcycle
+    integer :: hwp_alpha
 
     ebb_dcycle=Model%ebb_dcycle
+    hwp_alpha =Model%hwp_alpha 
 
     !$omp parallel do default(shared) private(i, j, nb, ix, k)
     do nb = 1, Atm_block%nblks
@@ -682,24 +686,23 @@ contains
          enddo
         elseif (ebb_dcycle==2) then ! -- forecast mode
           !JR st: reading new input file
-          ! Active 3D smoke field (new format, from updated input)
-          do k = 1, 5
+          if (hwp_alpha < 1.0) then
+            ! Active 3D smoke field (new format, from updated input)
+            do k = 1, 5
               Sfcprop(nb)%smokedc6_RRFS(ix,k,1) = data%fire_vardc6(i,j,k,1)
               Sfcprop(nb)%smokedc6_RRFS(ix,k,2) = data%fire_vardc6(i,j,k,2)
               Sfcprop(nb)%smokedc6_RRFS(ix,k,3) = data%fire_vardc6(i,j,k,3)
               Sfcprop(nb)%smokedc6_RRFS(ix,k,4) = data%fire_vardc6(i,j,k,4)
               Sfcprop(nb)%smokedc6_RRFS(ix,k,5) = data%fire_vardc6(i,j,k,5)
               Sfcprop(nb)%smokedc6_RRFS(ix,k,6) = data%fire_vardc6(i,j,k,6)    
-          end do
+            enddo
           ! Legacy 2D smoke field (retained temporarily)
-          if (associated(Sfcprop(nb)%smoke2d_RRFS)) then
-            Sfcprop(nb)%smoke2d_RRFS(ix,1)  = data%fire_var2d(i,j,1)
-            Sfcprop(nb)%smoke2d_RRFS(ix,2)  = data%fire_var2d(i,j,2)
-            Sfcprop(nb)%smoke2d_RRFS(ix,3)  = data%fire_var2d(i,j,3)
-            Sfcprop(nb)%smoke2d_RRFS(ix,4)  = data%fire_var2d(i,j,4)
-            Sfcprop(nb)%smoke2d_RRFS(ix,5)  = data%fire_var2d(i,j,5)
           else
-            if (ix==1 .and. j==1 .and. i==1) print *, "INFO: smoke2d_RRFS not allocated — skipping"
+              Sfcprop(nb)%smoke2d_RRFS(ix,1)  = data%fire_var2d(i,j,1)
+              Sfcprop(nb)%smoke2d_RRFS(ix,2)  = data%fire_var2d(i,j,2)
+              Sfcprop(nb)%smoke2d_RRFS(ix,3)  = data%fire_var2d(i,j,3)
+              Sfcprop(nb)%smoke2d_RRFS(ix,4)  = data%fire_var2d(i,j,4)
+              Sfcprop(nb)%smoke2d_RRFS(ix,5)  = data%fire_var2d(i,j,5)
           endif
          ! -- user define their own fire emission
         endif
@@ -731,7 +734,6 @@ contains
     call get_nx_ny_from_atm(Atm_block, nx, ny)
     allocate(data%eco_name(data%nvar_eco))
     allocate(data%eco_var(nx, ny))
-    !allocate(data%eco_var(nx,ny,data%nvar_eco))
 
     ! For the operational system
     data%eco_name(1)  = 'ecoregion_ID'  ! 2d
